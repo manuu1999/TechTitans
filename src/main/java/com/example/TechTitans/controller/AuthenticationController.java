@@ -8,6 +8,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import com.example.TechTitans.model.Customer;
+import com.example.TechTitans.model.TruckDriver;
 
 @Controller
 public class AuthenticationController {
@@ -20,12 +23,24 @@ public class AuthenticationController {
                         @RequestParam("password") String password,
                         @RequestParam("role") String role,
                         Model model) {
-        Administrator administrator = authenticationService.login(email, password);
-        if (administrator != null) {
-            return "redirect:/dashboard";  // Assuming a dashboard page
+        Object user = null;
+        switch (role.toLowerCase()) {
+            case "administrator":
+                user = authenticationService.loginAsAdministrator(email, password);
+                break;
+            case "customer":
+                user = authenticationService.loginAsCustomer(email, password);
+                break;
+            case "truckdriver":
+                user = authenticationService.loginAsTruckDriver(email, password);
+                break;
+        }
+
+        if (user != null) {
+            return "redirect:/dashboard";  // Adjust to actual dashboard path
         } else {
             model.addAttribute("error", "Email or Password is incorrect");
-            return "login";
+            return "login";  // Adjust to your login page
         }
     }
 }
