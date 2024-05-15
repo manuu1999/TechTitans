@@ -37,10 +37,10 @@ public class AuthenticationController {
         }
 
         if (user != null) {
-            return "redirect:/dashboard";  // Adjust to actual dashboard path
+            return "Home";  // New page
         } else {
             model.addAttribute("error", "Email or Password is incorrect");
-            return "login";  // Adjust to your login page
+            return "Login_Register";  // Adjust to your login page
         }
     }
 }

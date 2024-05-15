@@ -36,26 +36,23 @@
 			<artifactId>spring-boot-starter-data-jpa</artifactId>
 		</dependency>
 
-		<!-- spring boot starter web for the AuthenticationController Class -->
+		<!-- Spring Boot Starter Web Dependency -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
-			<version>3.2.5</version>
 		</dependency>
-		
-		<!-- FOr the Security Config Class -->
+
+		<!-- Spring Boot Starter Security Dependency -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 
-
-
 		<!-- Lombok Dependency -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
-			<version>1.18.24</version>
+			<version>1.18.30</version>
 			<scope>provided</scope>
 		</dependency>
 

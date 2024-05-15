@@ -22,8 +22,11 @@ public class Customer {
     @Column(name = "address", nullable = false, length = 80)
     private String address;
 
-    @Column(name = "email", nullable = false, length = 100)
-    private String email;
+    @Column(name = "emailAddress", nullable = false, length = 100)
+    private String emailAddress;
+
+    @Column(name = "password", nullable = false, length = 100)
+    private String password;
 
     @Column(name = "phone", nullable = false)
     private Integer phone;
@@ -31,5 +34,5 @@ public class Customer {
     @Column(name = "vat_number")
     private Integer vatNumber;
 
-    // Getters and setters
+
 }
