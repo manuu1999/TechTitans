@@ -40,7 +40,7 @@ public class AuthenticationController {
             return "Home";  // New page
         } else {
             model.addAttribute("error", "Email or Password is incorrect");
-            return "Login_Register";  // Adjust to your login page
+            return "Login_Register";
         }
     }
 }
