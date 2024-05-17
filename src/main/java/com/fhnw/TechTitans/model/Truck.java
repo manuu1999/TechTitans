@@ -25,6 +25,12 @@ public class Truck {
     @Column(name = "current_location", nullable = false, length = 100)
     private String currentLocation;
 
+    @Column(name = "latitude", nullable = false)
+    private Double latitude;
+
+    @Column(name = "longitude", nullable = false)
+    private Double longitude;
+
     @ManyToOne
     @JoinColumn(name = "depot_depot_id", nullable = false)
     private Depot depot;
@@ -35,7 +41,4 @@ public class Truck {
 
     @Column(name = "status", nullable = false, length = 20)
     private String status;
-
-    // Getters and setters
 }
-

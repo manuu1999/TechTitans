@@ -27,6 +27,4 @@ public class TruckDriver {
 
     @Column(name = "password", nullable = false, length = 40)
     private String password;
-
-    // Getters and setters
 }

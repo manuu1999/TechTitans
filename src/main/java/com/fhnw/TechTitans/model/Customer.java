@@ -22,17 +22,18 @@ public class Customer {
     @Column(name = "address", nullable = false, length = 80)
     private String address;
 
-    @Column(name = "emailAddress", nullable = false, length = 100)
-    private String emailAddress;
+    @Column(name = "email", nullable = false, length = 100)
+    private String email;
 
-    @Column(name = "password", nullable = false, length = 100)
-    private String password;
-
-    @Column(name = "phone", nullable = false)
-    private Integer phone;
+    @Column(name = "phone", nullable = false, length = 15)
+    private String phone;
 
     @Column(name = "vat_number")
     private Integer vatNumber;
 
+    @Column(name = "latitude", nullable = false)
+    private Double latitude;
 
+    @Column(name = "longitude", nullable = false)
+    private Double longitude;
 }

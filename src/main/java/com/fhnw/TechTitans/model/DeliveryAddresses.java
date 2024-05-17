@@ -12,21 +12,24 @@ import lombok.NoArgsConstructor;
 @Table(name = "delivery_addresses")
 public class DeliveryAddresses {
     @Id
-    @ManyToOne
-    @JoinColumn(name = "route_route_id", referencedColumnName = "route_id")
-    private Route route;
-
-    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "delivery_id", nullable = false)
     private Integer deliveryId;
-
-    @ManyToOne
-    @JoinColumn(name = "customer_customer_id", nullable = false)
-    private Customer customer;
 
     @Column(name = "delivery_address", nullable = false, length = 120)
     private String deliveryAddress;
 
-    // Getters and setters
-}
+    @Column(name = "latitude", nullable = false)
+    private Double latitude;
 
+    @Column(name = "longitude", nullable = false)
+    private Double longitude;
+
+    @ManyToOne
+    @JoinColumn(name = "route_route_id", referencedColumnName = "route_id")
+    private Route route;
+
+    @ManyToOne
+    @JoinColumn(name = "customer_customer_id", nullable = false)
+    private Customer customer;
+}
