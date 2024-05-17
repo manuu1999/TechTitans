@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Error - TechTitans</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <style>
+    body {
+      background-color: #f7f9fc;
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      color: #333;
+    }
+    .container {
+      text-align: center;
+      background: #fff;
+      padding: 40px 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      max-width: 600px;
+      margin: 20px;
+    }
+    .container h1 {
+      font-size: 3em;
+      margin-bottom: 0.5em;
+      color: #e74c3c;
+    }
+    .container p {
+      font-size: 1.2em;
+      margin: 0.5em 0;
+    }
+    .container a {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 10px 20px;
+      color: #fff;
+      background-color: #3498db;
+      text-decoration: none;
+      border-radius: 5px;
+      transition: background-color 0.3s ease;
+    }
+    .container a:hover {
+      background-color: #2980b9;
+    }
+    @media (max-width: 600px) {
+      .container {
+        padding: 20px 10px;
+      }
+      .container h1 {
+        font-size: 2em;
+      }
+      .container p {
+        font-size: 1em;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Error <span th:text="${status}"></span> :(</h1>
+  <p th:text="${error}">An unexpected error occurred. Please try again later.</p>
+  <p th:if="${timestamp != null}">Timestamp: <span th:text="${timestamp}"></span></p>
+  <p th:if="${error != null}">Error: <span th:text="${error}"></span></p>
+  <p th:if="${message != null}">Message: <span th:text="${message}"></span></p>
+  <p th:if="${path != null}">Path: <span th:text="${path}"></span></p>
+  <a th:href="@{/}">Go to Home Page</a>
+</div>
+</body>
+</html>
