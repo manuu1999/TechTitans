@@ -1,0 +1,1 @@
+These interfaces will extend JpaRepository and provide CRUD operations for the models.
