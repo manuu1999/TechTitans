@@ -59,11 +59,9 @@
             margin-bottom: 1em;
             display: none;
         }
-
         label {
             font-size: 0.85rem;
         }
-
         input {
             width: 100%;
             padding: 12px 20px;
@@ -72,20 +70,16 @@
             border: 1px solid #ccc;
             box-sizing: border-box;
         }
-
-        /* Text style for don't have an account */
         p {
-            margin-top:1rem;
+            margin-top: 1rem;
             text-align: center;
             font-size: 9pt;
         }
-
         .register-link {
             font-size: 9pt;
             color: #3498db;
             text-decoration: none;
         }
-
         .btn-primary {
             background-color: #343a40 !important;
             border-color: #474e55 !important;
@@ -97,7 +91,7 @@
 <div class="login-container">
     <h1>Welcome to TechTitans</h1>
     <div class="error-message" th:if="${param.error}" id="error-message">
-        <p th:text="${error}">Invalid username or password.</p>
+        <p th:text="${param.error}">Invalid username or password.</p>
     </div>
     <form id="login-form" th:action="@{/login}" method="post">
         <div class="form-group">
@@ -110,27 +104,24 @@
             <br>
             <input type="password" id="password" name="password" class="form-control">
         </div>
-
         <button type="submit" class="btn btn-primary" style="font-size: 0.9rem">Login</button>
         <p>Don't have an account? <span><a href="/register" class="register-link">Register here</a></span></p>
     </form>
-    <script th:if="${param.error}">
-        $('#error-message').show();
-    </script>
 </div>
 
-<script th:src="@{/js/jquery.min.js}"></script>
-<script th:src="@{/js/popper.min.js}"></script>
-<script th:src="@{/js/bootstrap.min.js}"></script>
-<script th:src="@{/js/velocity.min.js}"></script>
+<script src="/static/js/jquery.min.js"></script>
+<script src="/static/js/popper.min.js"></script>
+<script src="/static/js/bootstrap.min.js"></script>
+<script src="/static/js/velocity.min.js"></script>
 <script>
     $(document).ready(function() {
         $('#login-form').on('submit', function(e) {
             var username = $('#username').val().trim();
             var password = $('#password').val().trim();
-            if (username === '' || password === '') {
+            var email = $('#email').val().trim(); // assuming the id of the email field is 'email'
+            if (username === '' || password === '' || email === '') {
                 e.preventDefault();
-                $('#error-message').text('Please fill in both fields.').show().velocity('fadeIn', { duration: 300 });
+                $('#error-message').text('Please fill in all fields.').show().velocity({ opacity: 1 }, { duration: 300 });
             }
         });
     });
