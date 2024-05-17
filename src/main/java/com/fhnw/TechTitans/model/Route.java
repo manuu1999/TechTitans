@@ -40,6 +40,4 @@ public class Route {
 
     @Column(name = "total_distance_in_km")
     private Float totalDistanceInKm;
-
-    // Getters and setters
 }

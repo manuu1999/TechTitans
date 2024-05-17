@@ -21,6 +21,4 @@ public class Administrator {
 
     @Column(name = "password", length = 40)
     private String password;
-
-
 }
