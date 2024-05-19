@@ -38,7 +38,7 @@
                 <td th:text="${user.email}">email@example.com</td>
                 <td th:text="${user.role}">USER</td>
                 <td>
-                    <form th:action="@{/manageSite/updateRole}" method="post" style="display:inline;" th:if="${user.id != currentUser.id}">
+                    <form th:action="@{/admin/manageSite/updateRole}" method="post" style="display:inline;" th:if="${user.id != currentUser.id}">
                         <input type="hidden" name="userId" th:value="${user.id}">
                         <select name="role" class="form-control" style="display:inline-block; width:auto;">
                             <option value="USER" th:selected="${user.role == 'USER'}">USER</option>
@@ -48,7 +48,7 @@
                         </select>
                         <button type="submit" class="btn btn-primary">Update Role</button>
                     </form>
-                    <form th:action="@{/manageSite/deleteUser}" method="post" style="display:inline;" th:if="${user.id != currentUser.id}">
+                    <form th:action="@{/admin/manageSite/deleteUser}" method="post" style="display:inline;" th:if="${user.id != currentUser.id}">
                         <input type="hidden" name="userId" th:value="${user.id}">
                         <button type="submit" class="btn btn-danger">Delete</button>
                     </form>

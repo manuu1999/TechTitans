@@ -46,6 +46,10 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorizeRequests ->
                         authorizeRequests
                                 .requestMatchers("/register", "/login", "static/**", "/css/**", "/js/**", "/images/**").permitAll()
+                                //TODO: fix roles and permissions - Currently all users can access all pages
+                                //.requestMatchers("/trucker/**").hasAuthority("TRUCKDRIVER")
+                                //.requestMatchers("/shipper/**").hasAuthority("SHIPPER")
+                                //.requestMatchers("/admin/**").hasAuthority("ADMIN")
                                 .anyRequest().authenticated()
                 )
                 .formLogin(formLogin ->
@@ -85,4 +89,4 @@ public class SecurityConfig {
     }
 
 }
- 
+

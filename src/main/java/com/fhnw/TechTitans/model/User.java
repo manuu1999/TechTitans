@@ -3,6 +3,8 @@ package com.fhnw.TechTitans.model;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.Collection;
+
 
 @Data
 @Entity
@@ -25,5 +27,6 @@ public class User {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role = Role.USER;  // Default role
+
 
 }

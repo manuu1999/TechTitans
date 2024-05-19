@@ -5,6 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Truck Tour Planning Co.</title>
   <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+  <style>
+    html, body {
+      height: 100%;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+    }
+    .content {
+      flex: 1 0 auto;
+    }
+    footer {
+      flex-shrink: 0;
+    }
+  </style>
   <script src="/static/js/jquery.min.js"></script>
   <script src="/static/js/popper.min.js"></script>
   <script src="/static/js/bootstrap.min.js"></script>
@@ -14,33 +29,37 @@
 
 <!-- Navigation Bar -->
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <a class="navbar-brand" href="#">Truck Tours</a>
-  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-    <span class="navbar-toggler-icon"></span>
-  </button>
-  <div class="collapse navbar-collapse" id="navbarNav">
-    <ul class="navbar-nav ml-auto">
-      <li class="nav-item active">
-        <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
-      </li>
-      <li class="nav-item">
-        <a class="nav-link" th:href="@{/logout}">Logout</a>
-      </li>
-      <li class="nav-item" th:if="${role == 'ADMIN'}">
-        <a class="nav-link" th:href="@{/manageSite}">Admin Panel</a>
-      </li>
-        <li class="nav-item" th:if="${role == 'TRUCKDRIVER'}">
-            <a class="nav-link" th:href="@{/manageSite}">My Routes</a>
+  <div class="container-fluid">
+    <a class="navbar-brand" href="#">Truck Tours</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item active">
+          <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
         </li>
-      <li class="nav-item" th:if="${role == 'SHIPPER'}">
-        <a class="nav-link" th:href="@{/login}">My Shipments</a>
-      </li>
-    </ul>
+        <li class="nav-item" th:if="${role == 'ADMIN'}">
+          <a class="nav-link" th:href="@{/manageSite}">Admin Panel</a>
+        </li>
+        <li class="nav-item" th:if="${role == 'TRUCKDRIVER'}">
+          <a class="nav-link" th:href="@{/deliveries}">My Routes</a>
+        </li>
+        <li class="nav-item" th:if="${role == 'SHIPPER'}">
+          <a class="nav-link" th:href="@{/shipments}">My Shipments</a>
+        </li>
+      </ul>
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a class="nav-link" th:href="@{/logout}">Logout</a>
+        </li>
+      </ul>
+    </div>
   </div>
 </nav>
 
 <!-- Hero Image -->
-<div class="jumbotron jumbotron-fluid">
+<div class="jumbotron jumbotron-fluid content">
   <div class="container">
     <h1 class="display-4">Efficient Truck Planning</h1>
     <p class="lead">We will optimize your delivery time!</p>
@@ -48,7 +67,7 @@
 </div>
 
 <!-- About Section -->
-<div class="container">
+<div class="container content">
   <div class="row">
     <div class="col-md-8">
       <h1>Welcome, <span th:text="${username}"></span></h1>
