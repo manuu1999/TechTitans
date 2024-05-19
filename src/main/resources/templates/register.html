@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Register - TechTitans</title>
-  <link rel="stylesheet" th:href="@{/css/bootstrap.min.css}">
-  <link rel="stylesheet" th:href="@{/css/style.css}">
+  <link rel="stylesheet" href="/static/css/bootstrap.min.css">
   <style>
     body {
       background-color: #f7f9fc;
@@ -49,7 +48,7 @@
     .register-container .btn-primary:hover {
       background-color: #2980b9;
     }
-    .register-container .register-link {
+    .register-container {
       display: block;
       margin-top: 1em;
       text-align: center;
@@ -57,7 +56,6 @@
     .error-message {
       color: #e74c3c;
       margin-bottom: 1em;
-      display: none;
     }
     label {
       font-size: 0.85rem;
@@ -71,14 +69,9 @@
       box-sizing: border-box;
     }
     p {
-      margin-top:1rem;
+      margin-top: 1rem;
       text-align: center;
       font-size: 9pt;
-    }
-    .register-link {
-      font-size: 9pt;
-      color: #3498db;
-      text-decoration: none;
     }
 
     .btn-primary {
@@ -90,44 +83,124 @@
 </head>
 <body>
 <div class="register-container">
-  <h1>Register for TechTitans</h1>
-  <div class="error-message" th:if="${param.error}" id="error-message">
-    <p th:text="${error}">There was an error with your registration.</p>
-  </div>
-  <form id="register-form" th:action="@{/register}" th:object="${user}" method="post">
+  <h1>Register</h1>
+  <form id="register-form" th:action="@{/register}" method="post" th:object="${user}">
+    <div th:if="${errors != null}" class="error-message">
+      <ul>
+        <li th:each="error : ${errors}" th:text="${error.defaultMessage}"></li>
+      </ul>
+    </div>
     <div class="form-group">
       <label for="username">Username:</label>
-      <input type="text" id="username" th:field="*{username}" class="form-control" placeholder="Username">
+      <input type="text" id="username" name="username" class="form-control" th:field="*{username}" data-toggle="tooltip" data-placement="right" title="Enter your desired username (min 3 characters)">
     </div>
     <div class="form-group">
       <label for="password">Password:</label>
-      <input type="password" id="password" th:field="*{password}" class="form-control" placeholder="Password">
+      <input type="password" id="password" name="password" class="form-control" th:field="*{password}" data-toggle="tooltip" data-placement="right" title="Choose a strong password (min 8 characters)">
     </div>
     <div class="form-group">
       <label for="email">Email:</label>
-      <input type="email" id="email" th:field="*{email}" class="form-control" placeholder="example@gmail.com">
+      <input type="email" id="email" name="email" class="form-control" th:field="*{email}" data-toggle="tooltip" data-placement="right" title="Enter your email address">
     </div>
-    <button type="submit" class="btn btn-primary" style="font-size: 0.9rem">Register</button>
-    <p>Already have an account? <span><a href="/login" class="register-link">Login here</a></span></p>
+    <button type="submit" class="btn btn-primary" style="font-size: 0.9rem" id="register-button" disabled>Register</button>
   </form>
+  <p>Already have an account? <span><a href="/login" class="login-link">Login here</a></span></p>
 </div>
 
-<script th:src="@{/js/jquery.min.js}"></script>
-<script th:src="@{/js/popper.min.js}"></script>
-<script th:src="@{/js/bootstrap.min.js}"></script>
-<script th:src="@{/js/velocity.min.js}"></script>
+<script src="/static/js/jquery.min.js"></script>
+<script src="/static/js/popper.min.js"></script>
+<script src="/static/js/bootstrap.min.js"></script>
+<script src="/static/js/velocity.min.js"></script>
 <script>
   $(document).ready(function() {
+    function showTooltip(input, message) {
+      const tooltip = document.createElement('div');
+      tooltip.setAttribute('role', 'tooltip');
+      tooltip.textContent = message;
+      tooltip.style.backgroundColor = '#333';
+      tooltip.style.color = 'white';
+      tooltip.style.padding = '5px 10px';
+      tooltip.style.borderRadius = '4px';
+      tooltip.style.fontSize = '13px';
+      document.body.appendChild(tooltip);
+
+      const popperInstance = Popper.createPopper(input, tooltip, {
+        placement: 'right',
+        modifiers: [
+          {
+            name: 'offset',
+            options: {
+              offset: [0, 8],
+            },
+          },
+        ],
+      });
+
+      tooltip.setAttribute('data-show', '');
+      popperInstance.update();
+
+      input.addEventListener('input', function() {
+        tooltip.removeAttribute('data-show');
+        document.body.removeChild(tooltip);
+      });
+    }
+
+    function validateForm() {
+      var username = $('#username').val().trim();
+      var password = $('#password').val().trim();
+      var email = $('#email').val().trim();
+      var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+      if (username === '' || username.length < 3 || password === '' || password.length < 8 || email === '' || !emailRegex.test(email)) {
+        $('#register-button').attr('disabled', true);
+      } else {
+        $('#register-button').attr('disabled', false);
+      }
+    }
+
+    $('#username, #password, #email').on('input', function() {
+      validateForm();
+    });
+
+    $('#username').on('blur', function() {
+      var username = $(this).val().trim();
+      if (username === '') {
+        showTooltip(this, 'Username is required.');
+      } else if (username.length < 3) {
+        showTooltip(this, 'Username must be at least 3 characters long.');
+      }
+    });
+
+    $('#password').on('blur', function() {
+      var password = $(this).val().trim();
+      if (password === '') {
+        showTooltip(this, 'Password is required.');
+      } else if (password.length < 8) {
+        showTooltip(this, 'Password must be at least 8 characters long.');
+      }
+    });
+
+    $('#email').on('blur', function() {
+      var email = $(this).val().trim();
+      var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (email === '') {
+        showTooltip(this, 'Email is required.');
+      } else if (!emailRegex.test(email)) {
+        showTooltip(this, 'Invalid email format.');
+      }
+    });
+
     $('#register-form').on('submit', function(e) {
       var username = $('#username').val().trim();
       var password = $('#password').val().trim();
       var email = $('#email').val().trim();
+
       if (username === '' || password === '' || email === '') {
         e.preventDefault();
-        $('#error-message').text('Please fill in all fields.').show().velocity('fadeIn', { duration: 300 });
       }
     });
   });
 </script>
+
 </body>
 </html>

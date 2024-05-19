@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manage Site - TechTitans</title>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #f7f9fc;
+            font-family: 'Roboto', sans-serif;
+        }
+        .container {
+            margin-top: 50px;
+        }
+        .table {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Admin Panel</h1>
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="user : ${users}">
+                <td th:text="${user.id}">1</td>
+                <td th:text="${user.username}">username</td>
+                <td th:text="${user.email}">email@example.com</td>
+                <td th:text="${user.role}">USER</td>
+                <td>
+                    <form th:action="@{/manageSite/updateRole}" method="post" style="display:inline;" th:if="${user.id != currentUser.id}">
+                        <input type="hidden" name="userId" th:value="${user.id}">
+                        <select name="role" class="form-control" style="display:inline-block; width:auto;">
+                            <option value="USER" th:selected="${user.role == 'USER'}">USER</option>
+                            <option value="TRUCKDRIVER" th:selected="${user.role == 'TRUCKDRIVER'}">TRUCKDRIVER</option>
+                            <option value="SHIPPER" th:selected="${user.role == 'SHIPPER'}">SHIPPER</option>
+                            <option value="ADMIN" th:selected="${user.role == 'ADMIN'}">ADMIN</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary">Update Role</button>
+                    </form>
+                    <form th:action="@{/manageSite/deleteUser}" method="post" style="display:inline;" th:if="${user.id != currentUser.id}">
+                        <input type="hidden" name="userId" th:value="${user.id}">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                    <span th:if="${user.id == currentUser.id}">Your Account</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <a href="/" class="btn btn-secondary">Back to Home</a>
+</div>
+
+<script src="/static/js/jquery.min.js"></script>
+<script src="/static/js/bootstrap.min.js"></script>
+</body>
+</html>
