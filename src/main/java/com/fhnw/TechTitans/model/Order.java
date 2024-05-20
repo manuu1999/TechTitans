@@ -26,17 +26,41 @@ public class Order {
     @JoinColumn(name = "customer_customer_id", nullable = false)
     private Customer customer;
 
-    @Column(name = "product_quantity", nullable = false)
-    private Integer productQuantity;
-
     @Column(name = "expected_delivery_date")
     private LocalDateTime expectedDeliveryDate;
 
-    @ManyToMany
-    @JoinTable(
-            name = "order_product",
-            joinColumns = @JoinColumn(name = "order_id"),
-            inverseJoinColumns = @JoinColumn(name = "product_id")
-    )
-    private List<Product> products;
+    @OneToMany(mappedBy = "order")
+    private List<OrderProduct> orderProducts;
+
+    @OneToOne
+    @JoinColumn(name = "delivery_id", nullable = false)
+    private DeliveryAddresses deliveryAddress;
+
+    // Method to calculate the total volume of the order
+    public float getTotalVolume() {
+        float totalVolume = 0;
+        for (OrderProduct orderProduct : orderProducts) {
+            totalVolume += orderProduct.getProduct().getSizeInM3() * orderProduct.getQuantity();
+        }
+        return totalVolume;
+    }
+
+    // Method to calculate the total weight of the order
+    public float getTotalWeight() {
+        float totalWeight = 0;
+        for (OrderProduct orderProduct : orderProducts) {
+            totalWeight += orderProduct.getProduct().getGrossWeight() * orderProduct.getQuantity();
+        }
+        return totalWeight;
+    }
+
+    // Method to get the latitude of the delivery address
+    public Double getDeliveryLatitude() {
+        return deliveryAddress != null ? deliveryAddress.getLatitude() : null;
+    }
+
+    // Method to get the longitude of the delivery address
+    public Double getDeliveryLongitude() {
+        return deliveryAddress != null ? deliveryAddress.getLongitude() : null;
+    }
 }
