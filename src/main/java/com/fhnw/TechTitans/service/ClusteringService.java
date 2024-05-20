@@ -6,41 +6,43 @@ import com.fhnw.TechTitans.model.OrderCluster;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 public class ClusteringService {
+    private static final float MAX_CAPACITY_M3 = 80.0f;
+    private static final float MAX_WEIGHT = 80.0f;
+
     public List<OrderCluster> clusterOrders(List<Order> orders, List<Truck> trucks) {
         List<OrderCluster> clusters = new ArrayList<>();
-        OrderCluster currentCluster = new OrderCluster();
-        Truck currentTruck = trucks.get(0); // Assume at least one truck available
+        List<Order> remainingOrders = new ArrayList<>(orders);
+        Random random = new Random();
+        int currentTruckIndex = 0;
 
-        for (Order order : orders) {
-            float orderVolume = order.getTotalVolume();
-            float orderWeight = order.getTotalWeight();
-
-            // Check if adding this order exceeds truck capacity
-            if (currentCluster.getTotalVolume() + orderVolume > currentTruck.getSizeCapacityInM3() ||
-                    currentCluster.getTotalWeight() + orderWeight > currentTruck.getWeightCapacity()) {
-
-                // Start a new cluster
-                clusters.add(currentCluster);
-                currentCluster = new OrderCluster();
-
-                // Move to the next truck if available
-                int nextTruckIndex = clusters.size();
-                if (nextTruckIndex < trucks.size()) {
-                    currentTruck = trucks.get(nextTruckIndex);
-                } else {
-                    // No more trucks available, handle as needed (e.g., throw exception)
-                    throw new RuntimeException("Not enough trucks to handle all orders");
-                }
+        while (!remainingOrders.isEmpty()) {
+            if (currentTruckIndex >= trucks.size()) {
+                throw new RuntimeException("Not enough trucks to handle all orders");
             }
 
-            currentCluster.addOrder(order);
-        }
+            OrderCluster currentCluster = new OrderCluster();
+            Order currentOrder = remainingOrders.remove(random.nextInt(remainingOrders.size()));
+            currentCluster.addOrder(currentOrder);
 
-        // Add the last cluster if it contains any orders
-        if (!currentCluster.getOrders().isEmpty()) {
+            boolean addedOrder;
+            do {
+                addedOrder = false;
+                Order closestOrder = findClosestOrder(currentOrder, remainingOrders);
+                if (closestOrder != null &&
+                        currentCluster.getTotalVolume() + closestOrder.getTotalVolume() <= MAX_CAPACITY_M3 &&
+                        currentCluster.getTotalWeight() + closestOrder.getTotalWeight() <= MAX_WEIGHT) {
+                    currentCluster.addOrder(closestOrder);
+                    remainingOrders.remove(closestOrder);
+                    currentOrder = closestOrder;
+                    addedOrder = true;
+                }
+            } while (addedOrder);
+
             clusters.add(currentCluster);
+            currentTruckIndex++;
         }
 
         return clusters;
@@ -48,6 +50,7 @@ public class ClusteringService {
 
     private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
         // Haversine formula to calculate distance between two coordinates
+        // Source: https://gist.github.com/vananth22/888ed9a22105670e7a4092bdcf0d72e4
         final int R = 6371; // Radius of the earth in km
         double latDistance = Math.toRadians(lat2 - lat1);
         double lonDistance = Math.toRadians(lon2 - lon1);
@@ -76,5 +79,21 @@ public class ClusteringService {
         }
 
         return closestOrder;
+    }
+
+    public void printClusters(List<OrderCluster> clusters) {
+        for (OrderCluster cluster : clusters) {
+            System.out.println("Order Cluster:");
+            for (Order order : cluster.getOrders()) {
+                System.out.println("Order ID: " + order.getId() +
+                        ", Total Volume: " + order.getTotalVolume() +
+                        ", Total Weight: " + order.getTotalWeight() +
+                        ", Delivery Latitude: " + order.getDeliveryLatitude() +
+                        ", Delivery Longitude: " + order.getDeliveryLongitude());
+            }
+            System.out.println("Cluster Total Volume: " + cluster.getTotalVolume() +
+                    ", Cluster Total Weight: " + cluster.getTotalWeight());
+            System.out.println();
+        }
     }
 }

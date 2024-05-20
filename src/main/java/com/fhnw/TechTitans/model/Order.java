@@ -63,4 +63,6 @@ public class Order {
     public Double getDeliveryLongitude() {
         return deliveryAddress != null ? deliveryAddress.getLongitude() : null;
     }
+
+
 }
