@@ -6,16 +6,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
-import java.time.LocalDateTime;
 
 @Service
 public class TruckTourPlanning {
 
     @Autowired
     private TruckRepository truckRepository;
-
-    @Autowired
-    private ProductRepository productRepository;
 
     @Autowired
     private DepotRepository depotRepository;
@@ -27,48 +23,32 @@ public class TruckTourPlanning {
     private RouteRepository routeRepository;
 
     @Autowired
-    private DeliveryAddressesRepository deliveryAddressesRepository;
+    private ClusteringAlgorithm clusteringAlgorithm;
 
     @Autowired
-    private RouteStopRepository routeStopRepository;
+    private RouteOptimizationAlgorithm routeOptimizationAlgorithm;
 
-    // Load existing data and plan routes
     public void loadDataAndPlanRoutes() {
         List<Truck> trucks = truckRepository.findAll();
         List<Order> orders = orderRepository.findAll();
         List<Depot> depots = depotRepository.findAll();
 
-        // Initialize data structures
-        Map<Integer, List<Order>> clusterMap = new HashMap<>();
-        Map<Integer, Route> routeMap = new HashMap<>();
+        Map<Integer, List<Order>> clusters = clusteringAlgorithm.clusterOrders(orders, trucks);
+        Map<Integer, Route> routes = new HashMap<>();
 
-        // Order Clustering based on delivery addresses (simple example)
-        for (Order order : orders) {
-            Customer customer = order.getCustomer();
-            Depot nearestDepot = findNearestDepot(customer.getLatitude(), customer.getLongitude(), depots);
-            clusterMap.computeIfAbsent(nearestDepot.getId(), k -> new ArrayList<>()).add(order);
-        }
-
-        // Assign Trucks and Optimize Routes
-        for (Map.Entry<Integer, List<Order>> entry : clusterMap.entrySet()) {
-            Depot startDepot = depotRepository.findById(entry.getKey()).orElse(null);
-            if (startDepot == null) continue;
+        for (Map.Entry<Integer, List<Order>> entry : clusters.entrySet()) {
+            Depot startDepot = findNearestDepot(entry.getValue().get(0).getCustomer().getLatitude(), entry.getValue().get(0).getCustomer().getLongitude(), depots);
             Depot endDepot = determineEndDepot(startDepot, depots);
-            Truck assignedTruck = assignTruck(entry.getValue(), trucks);
-            if (assignedTruck != null) {
-                Route route = createOptimizedRoute(startDepot, endDepot, assignedTruck, entry.getValue());
-                routeMap.put(route.getId(), route);
-            }
+            Truck assignedTruck = trucks.get(entry.getKey());
+            Route route = routeOptimizationAlgorithm.optimizeRoute(startDepot, endDepot, assignedTruck, entry.getValue());
+            routes.put(route.getId(), route);
         }
 
-        // Save and evaluate routes
-        for (Route route : routeMap.values()) {
-            routeRepository.save(route);
-            evaluateRouteEfficiency(route);
-        }
+        routes.values().forEach(routeRepository::save);
+
+        outputRoutes(routes, trucks, depots);
     }
 
-    // Methods for various steps (placeholders)
     private Depot findNearestDepot(double lat, double lon, List<Depot> depots) {
         // Implement nearest depot logic
         return depots.get(0); // Placeholder
@@ -79,17 +59,12 @@ public class TruckTourPlanning {
         return depots.get(0); // Placeholder
     }
 
-    private Truck assignTruck(List<Order> orders, List<Truck> trucks) {
-        // Implement truck assignment logic
-        return trucks.get(0); // Placeholder
-    }
-
-    private Route createOptimizedRoute(Depot startDepot, Depot endDepot, Truck truck, List<Order> orders) {
-        // Implement route optimization logic
-        return new Route(); // Placeholder
-    }
-
-    private void evaluateRouteEfficiency(Route route) {
-        // Implement route evaluation logic
+    private void outputRoutes(Map<Integer, Route> routes, List<Truck> trucks, List<Depot> depots) {
+        for (Route route : routes.values()) {
+            System.out.println("Cluster: " + route.getId());
+            System.out.println("Truck: " + trucks.get(route.getId()).getId());
+            System.out.println("Depot: " + depots.get(route.getId()).getName());
+            route.getStops().forEach(stop -> System.out.println("Address: " + stop.getDeliveryAddress().getAddress()));
+        }
     }
 }
