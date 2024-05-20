@@ -3,11 +3,13 @@ package com.fhnw.TechTitans.service;
 import com.fhnw.TechTitans.model.Order;
 import com.fhnw.TechTitans.model.Truck;
 import com.fhnw.TechTitans.model.OrderCluster;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+@Service
 public class ClusteringService {
     private static final float MAX_CAPACITY_M3 = 80.0f;
     private static final float MAX_WEIGHT = 80.0f;
@@ -48,17 +50,18 @@ public class ClusteringService {
         return clusters;
     }
 
+    // Haversine formula to calculate distance between two coordinates
+    // Source: https://gist.github.com/vananth22/888ed9a22105670e7a4092bdcf0d72e4
+
     private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-        // Haversine formula to calculate distance between two coordinates
-        // Source: https://gist.github.com/vananth22/888ed9a22105670e7a4092bdcf0d72e4
-        final int R = 6371; // Radius of the earth in km
+        final int R = 6371;
         double latDistance = Math.toRadians(lat2 - lat1);
         double lonDistance = Math.toRadians(lon2 - lon1);
         double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
                 + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-                * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+                + Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c; // Distance in km
+        return R * c;
     }
 
     private Order findClosestOrder(Order currentOrder, List<Order> remainingOrders) {
@@ -79,21 +82,5 @@ public class ClusteringService {
         }
 
         return closestOrder;
-    }
-
-    public void printClusters(List<OrderCluster> clusters) {
-        for (OrderCluster cluster : clusters) {
-            System.out.println("Order Cluster:");
-            for (Order order : cluster.getOrders()) {
-                System.out.println("Order ID: " + order.getId() +
-                        ", Total Volume: " + order.getTotalVolume() +
-                        ", Total Weight: " + order.getTotalWeight() +
-                        ", Delivery Latitude: " + order.getDeliveryLatitude() +
-                        ", Delivery Longitude: " + order.getDeliveryLongitude());
-            }
-            System.out.println("Cluster Total Volume: " + cluster.getTotalVolume() +
-                    ", Cluster Total Weight: " + cluster.getTotalWeight());
-            System.out.println();
-        }
     }
 }
