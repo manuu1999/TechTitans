@@ -27,14 +27,7 @@ public class AdminController {
     @Autowired
     private UserService userService;
 
-    @Autowired
-    private ClusteringService clusteringService;
 
-    @Autowired
-    private OrderService orderService;
-
-    @Autowired
-    private TruckService truckService;
 
     Logger logger = LogManager.getLogger(AdminController.class);
 
@@ -71,17 +64,5 @@ public class AdminController {
         return "redirect:/manageSite";
     }
 
-    @GetMapping("/manageSite/clusterOrders")
-    public String clusterOrders(Model model) {
-        try {
-            List<Order> orders = orderService.getAllOrders();
-            List<Truck> trucks = truckService.getAllTrucks();
-            List<OrderCluster> clusters = clusteringService.clusterOrders(orders, trucks);
-            model.addAttribute("clusters", clusters);
-        } catch (Exception e) {
-            logger.error("Error clustering orders", e);
-            model.addAttribute("error", "There was an error clustering the orders. Please try again.");
-        }
-        return "manageSite";
-    }
+
 }

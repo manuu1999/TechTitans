@@ -46,8 +46,11 @@ public class ClusteringService {
             clusters.add(currentCluster);
             currentTruckIndex++;
         }
+        // Automatically print the clusters after they are created
+        printOrderClusters(clusters);
 
         return clusters;
+
     }
 
     // Haversine formula to calculate distance between two coordinates
@@ -82,5 +85,19 @@ public class ClusteringService {
         }
 
         return closestOrder;
+    }
+
+    public static void printOrderClusters(List<OrderCluster> clusters) {
+        for (int i = 0; i < clusters.size(); i++) {
+            OrderCluster cluster = clusters.get(i);
+            System.out.println("Cluster " + (i + 1) + ":");
+            for (Order order : cluster.getOrders()) {
+                System.out.println("  Order ID: " + order.getId() +
+                        ", Volume: " + order.getTotalVolume() +
+                        ", Weight: " + order.getTotalWeight() +
+                        ", Delivery Latitude: " + order.getDeliveryLatitude() +
+                        ", Delivery Longitude: " + order.getDeliveryLongitude());
+            }
+        }
     }
 }
