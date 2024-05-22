@@ -1,13 +1,7 @@
 package com.fhnw.TechTitans.controller;
 
 import com.fhnw.TechTitans.model.User;
-import com.fhnw.TechTitans.model.Order;
-import com.fhnw.TechTitans.model.Truck;
-import com.fhnw.TechTitans.model.OrderCluster;
 import com.fhnw.TechTitans.service.UserService;
-import com.fhnw.TechTitans.service.ClusteringService;
-import com.fhnw.TechTitans.service.OrderService;
-import com.fhnw.TechTitans.service.TruckService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
