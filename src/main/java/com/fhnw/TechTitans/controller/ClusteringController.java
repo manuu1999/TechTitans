@@ -52,6 +52,7 @@ public class ClusteringController {
             List<Order> orders = orderService.getAllOrders();
             List<Truck> trucks = truckService.getAllTrucks();
             clusteringService.clusterOrders(orders, trucks);
+            logger.info("Successfully clustered orders");
             return "{\"status\":\"success\"}";
         } catch (Exception e) {
             logger.error("Error clustering orders", e);

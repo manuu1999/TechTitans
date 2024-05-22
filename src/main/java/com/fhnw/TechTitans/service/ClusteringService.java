@@ -3,6 +3,8 @@ package com.fhnw.TechTitans.service;
 import com.fhnw.TechTitans.model.Order;
 import com.fhnw.TechTitans.model.Truck;
 import com.fhnw.TechTitans.model.OrderCluster;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,6 +22,8 @@ public class ClusteringService {
     @Autowired
     private OrderService orderService;
 
+    private static final Logger logger = LogManager.getLogger(ClusteringService.class);
+
     /**
      * Clusters orders based on their delivery coordinates and truck capacities.
      *
@@ -33,7 +37,7 @@ public class ClusteringService {
 
         // Filter out orders that are already in a cluster
         for (Order order : orders) {
-            if (!order.isInCluster()) {
+            if (!order.isClustered()) {
                 remainingOrders.add(order); // Add orders not in a cluster to the list of remaining orders
             }
         }
@@ -46,29 +50,34 @@ public class ClusteringService {
             // Find the closest truck to the first remaining order
             Truck closestTruck = findClosestTruck(remainingOrders.get(0), trucks);
             if (closestTruck == null) {
+                logger.warn("No closest truck found for the order. Exiting the loop.");
                 break; // If no closest truck is found, exit the loop
             }
 
             // Create a new cluster with the closest truck
             OrderCluster currentCluster = new OrderCluster(closestTruck);
             trucks.remove(closestTruck);  // Remove the truck from the list of available trucks
+            logger.info("Created a new cluster with truck ID: {}", closestTruck.getId());
 
             // Add orders to the current cluster until no more suitable orders can be found
             while (true) {
                 Order bestOrder = findBestOrder(currentCluster, remainingOrders);
                 if (bestOrder == null) {
+                    logger.info("No suitable order found for the current cluster. Exiting the loop.");
                     break; // Exit the loop if no suitable order is found
                 }
                 splitAndAddOrder(currentCluster, bestOrder, remainingOrders);
             }
 
             clusters.add(currentCluster); // Add the completed cluster to the list of clusters
+            logger.info("Cluster completed and added to the list. Total clusters: {}", clusters.size());
         }
 
         // Mark orders in the clusters as clustered in the database
         for (OrderCluster cluster : clusters) {
             for (Order order : cluster.getOrders()) {
                 orderService.markOrderAsClustered(order);
+                logger.info("Order ID: {} marked as clustered", order.getId());
             }
         }
 
@@ -98,6 +107,7 @@ public class ClusteringService {
             }
         }
 
+        logger.info("Closest truck ID: {} found for order ID: {}", closestTruck != null ? closestTruck.getId() : null, order.getId());
         return closestTruck;
     }
 
@@ -114,10 +124,12 @@ public class ClusteringService {
             Order partialOrder = orderService.splitOrder(order, MAX_CAPACITY_M3 - cluster.getTotalVolume(), MAX_WEIGHT - cluster.getTotalWeight());
             cluster.addOrder(partialOrder);
             orderService.markOrderAsClustered(partialOrder);
+            logger.info("Partial order ID: {} added to cluster with truck ID: {}", partialOrder.getId(), cluster.getTruck().getId());
         }
         cluster.addOrder(order); // Add the remaining part of the order to the cluster
         remainingOrders.remove(order); // Remove the order from the list of remaining orders
-        orderService.saveOrder(order); // Ensure the updated order is saved
+        orderService.markOrderAsClustered(order); // Ensure the order is marked as clustered
+        logger.info("Order ID: {} added to cluster with truck ID: {}", order.getId(), cluster.getTruck().getId());
     }
 
     /**
@@ -138,7 +150,9 @@ public class ClusteringService {
         }
 
         // Return the closest order or null if the priority queue is empty
-        return priorityQueue.isEmpty() ? null : priorityQueue.poll();
+        Order bestOrder = priorityQueue.isEmpty() ? null : priorityQueue.poll();
+        logger.info("Best order ID: {} found for cluster with truck ID: {}", bestOrder != null ? bestOrder.getId() : null, cluster.getTruck().getId());
+        return bestOrder;
     }
 
     /**
@@ -158,7 +172,9 @@ public class ClusteringService {
                 Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
                         Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
+        double distance = R * c;
+        logger.info("Calculated distance: {} km between points ({}, {}) and ({}, {})", distance, lat1, lon1, lat2, lon2);
+        return distance;
     }
 
     /**
@@ -170,13 +186,10 @@ public class ClusteringService {
         // Iterate over each cluster and print its details
         for (int i = 0; i < clusters.size(); i++) {
             OrderCluster cluster = clusters.get(i);
-            System.out.println("Cluster " + (i + 1) + " (Truck " + cluster.getTruck().getId() + "):");
+            logger.info("Cluster {} (Truck {}):", (i + 1), cluster.getTruck().getId());
             for (Order order : cluster.getOrders()) {
-                System.out.println("  Order ID: " + order.getId() +
-                        ", Volume: " + order.getTotalVolume() +
-                        ", Weight: " + order.getTotalWeight() +
-                        ", Delivery Latitude: " + order.getDeliveryLatitude() +
-                        ", Delivery Longitude: " + order.getDeliveryLongitude());
+                logger.info("  Order ID: {}, Volume: {}, Weight: {}, Delivery Latitude: {}, Delivery Longitude: {}",
+                        order.getId(), order.getTotalVolume(), order.getTotalWeight(), order.getDeliveryLatitude(), order.getDeliveryLongitude());
             }
         }
     }
