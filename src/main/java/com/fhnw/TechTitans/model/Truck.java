@@ -31,13 +31,13 @@ public class Truck {
     @Column(name = "longitude", nullable = false)
     private Double longitude;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "depot_depot_id", nullable = false)
     private Depot depot;
 
-    @ManyToOne
-    @JoinColumn(name = "truck_driver_truck_driver_id", nullable = false)
-    private TruckDriver truckDriver;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_user_id", nullable = false)
+    private User user;
 
     @Column(name = "status", nullable = false, length = 20)
     private String status;

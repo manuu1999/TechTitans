@@ -7,7 +7,7 @@
     <script>
         async function clusterOrders() {
             try {
-                const response = await fetch('/api/manageSite/clusterOrders', {
+                const response = await fetch('/clusterOrders', {
                     method: 'GET'
                 });
                 if (response.ok) {

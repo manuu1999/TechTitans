@@ -29,6 +29,9 @@
       <li class="nav-item" th:if="${role == 'ADMIN'}">
         <a class="nav-link" th:href="@{/manageSite}">Admin Panel</a>
       </li>
+      <li class="nav-item" th:if="${role == 'ADMIN'}">
+        <a class="nav-link" th:href="@{/clustering}">Clustering Panel</a>
+      </li>
         <li class="nav-item" th:if="${role == 'TRUCKDRIVER'}">
             <a class="nav-link" th:href="@{/manageSite}">My Routes</a>
         </li>

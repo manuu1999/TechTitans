@@ -16,21 +16,21 @@ public class Route {
     @Column(name = "route_id", nullable = false)
     private Integer id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "start_depot_id", nullable = false)
     private Depot startDepot;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "end_depot_id", nullable = false)
     private Depot endDepot;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "truck_truck_id", nullable = false)
     private Truck truck;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "administrator_administrator_id", nullable = false)
-    private Administrator administrator;
+    private User user;
 
     @Column(name = "status", nullable = false, length = 30)
     private String status;

@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Set;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -30,4 +32,7 @@ public class Depot {
 
     @Column(name = "longitude", nullable = false)
     private Double longitude;
+
+    @OneToMany(mappedBy = "depot", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<Truck> trucks;
 }

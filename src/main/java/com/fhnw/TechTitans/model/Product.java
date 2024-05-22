@@ -39,6 +39,6 @@ public class Product {
     @Column(name = "gross_weight", nullable = false)
     private Float grossWeight;
 
-    @OneToMany(mappedBy = "product")
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<OrderProduct> orderProducts;
 }

@@ -1,0 +1,129 @@
+@startuml
+entity Customer {
+    + id: Integer [PK]
+    ----
+    name: String
+    address: String
+    email: String
+    phone: String
+    vat_number: Integer
+    latitude: Double
+    longitude: Double
+    user_id: Integer [FK]
+}
+
+entity Order {
+    + id: Integer [PK]
+    ----
+    timestamp: LocalDateTime
+    expected_delivery_date: LocalDateTime
+    customer_id: Integer [FK]
+    delivery_id: Integer [FK]
+    in_cluster: boolean
+}
+
+entity OrderProduct {
+    + id: Integer [PK]
+    ----
+    order_id: Integer [FK]
+    product_id: Integer [FK]
+    quantity: Integer
+}
+
+entity DeliveryAddresses {
+    + deliveryId: Integer [PK]
+    ----
+    deliveryAddress: String
+    latitude: Double
+    longitude: Double
+    route_id: Integer [FK]
+    customer_id: Integer [FK]
+}
+
+entity Depot {
+    + id: Integer [PK]
+    ----
+    depotAddress: String
+    sizeCapacityInM3: Float
+    weightCapacityInKg: Float
+    latitude: Double
+    longitude: Double
+}
+
+entity Route {
+    + id: Integer [PK]
+    ----
+    start_depot_id: Integer [FK]
+    end_depot_id: Integer [FK]
+    truck_id: Integer [FK]
+    user_id: Integer [FK]
+    status: String
+    total_delivery_time_in_days: Integer
+    total_distance_in_km: Float
+}
+
+entity RouteStop {
+    + id: Integer [PK]
+    ----
+    route_id: Integer [FK]
+    stop_sequence: Integer
+    delivery_address_id: Integer [FK]
+}
+
+entity Truck {
+    + id: Integer [PK]
+    ----
+    sizeCapacityInM3: Float
+    weightCapacity: Float
+    currentLocation: String
+    latitude: Double
+    longitude: Double
+    depot_id: Integer [FK]
+    user_id: Integer [FK]
+    status: String
+}
+
+entity User {
+    + id: Long [PK]
+    ----
+    username: String
+    password: String
+    email: String
+    role: Role
+}
+
+entity Product {
+    + id: Integer [PK]
+    ----
+    productName: String
+    price: Float
+    lengthInM: Float
+    heightInM: Float
+    depthInM: Float
+    sizeInM3: Float
+    grossWeight: Float
+}
+
+enum Role {
+    USER
+    ADMIN
+    TRUCKDRIVER
+    SHIPPER
+}
+
+Order }|--|| Customer : belongs_to
+Order }|--|| DeliveryAddresses : delivered_to
+OrderProduct }|--|| Order : contains
+OrderProduct }|--|| Product : references
+DeliveryAddresses }|--|| Customer : belongs_to
+DeliveryAddresses }|--|| Route : part_of
+RouteStop }|--|| Route : consists_of
+RouteStop }|--|| DeliveryAddresses : stops_at
+Route }|--|| Depot : starts_ends
+Route }|--|| Truck : uses
+Route }|--|| User : managed_by
+Truck }|--|| Depot : assigned_to
+Truck }|--|| User : driven_by
+User }|--|| Customer : associated_with
+
+@enduml

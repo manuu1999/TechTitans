@@ -3,94 +3,121 @@ package com.fhnw.TechTitans.service;
 import com.fhnw.TechTitans.model.Order;
 import com.fhnw.TechTitans.model.Truck;
 import com.fhnw.TechTitans.model.OrderCluster;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Random;
+import java.util.PriorityQueue;
 
 @Service
 public class ClusteringService {
-    private static final float MAX_CAPACITY_M3 = 80.0f;
-    private static final float MAX_WEIGHT = 80.0f;
+    public static final float MAX_CAPACITY_M3 = 80.0f;
+    public static final float MAX_WEIGHT = 80.0f;
+    public static final long OLD_ORDER_THRESHOLD = 7 * 24 * 60 * 60 * 1000L; // 7 days in milliseconds
+
+    @Autowired
+    private OrderService orderService;
 
     public List<OrderCluster> clusterOrders(List<Order> orders, List<Truck> trucks) {
         List<OrderCluster> clusters = new ArrayList<>();
-        List<Order> remainingOrders = new ArrayList<>(orders);
-        Random random = new Random();
-        int currentTruckIndex = 0;
+        List<Order> remainingOrders = new ArrayList<>();
 
-        while (!remainingOrders.isEmpty()) {
-            if (currentTruckIndex >= trucks.size()) {
-                throw new RuntimeException("Not enough trucks to handle all orders");
+        // Filter out orders that are already in a cluster
+        for (Order order : orders) {
+            if (!order.isInCluster()) { // check order entity column in_cluster = false to continue
+                remainingOrders.add(order);
+            }
+        }
+
+        remainingOrders.sort(Comparator.comparing(Order::getTimestamp)); // Older orders first
+
+        while (!remainingOrders.isEmpty() && !trucks.isEmpty()) {
+            Truck closestTruck = findClosestTruck(remainingOrders.get(0), trucks);
+            if (closestTruck == null) {
+                break;
             }
 
-            OrderCluster currentCluster = new OrderCluster();
-            Order currentOrder = remainingOrders.remove(random.nextInt(remainingOrders.size()));
-            currentCluster.addOrder(currentOrder);
+            OrderCluster currentCluster = new OrderCluster(closestTruck);
+            trucks.remove(closestTruck);  // Remove truck from the list as it is now assigned
 
-            boolean addedOrder;
-            do {
-                addedOrder = false;
-                Order closestOrder = findClosestOrder(currentOrder, remainingOrders);
-                if (closestOrder != null &&
-                        currentCluster.getTotalVolume() + closestOrder.getTotalVolume() <= MAX_CAPACITY_M3 &&
-                        currentCluster.getTotalWeight() + closestOrder.getTotalWeight() <= MAX_WEIGHT) {
-                    currentCluster.addOrder(closestOrder);
-                    remainingOrders.remove(closestOrder);
-                    currentOrder = closestOrder;
-                    addedOrder = true;
+            while (true) {
+                Order bestOrder = findBestOrder(currentCluster, remainingOrders);
+                if (bestOrder == null) {
+                    break;
                 }
-            } while (addedOrder);
+                splitAndAddOrder(currentCluster, bestOrder, remainingOrders);
+            }
 
             clusters.add(currentCluster);
-            currentTruckIndex++;
         }
-        // Automatically print the clusters after they are created
+
+        // Mark clustered orders in db table order column in_cluster = true
+        for (OrderCluster cluster : clusters) {
+            for (Order order : cluster.getOrders()) {
+                orderService.markOrderAsClustered(order);
+            }
+        }
+
         printOrderClusters(clusters);
 
         return clusters;
-
     }
 
-    // Haversine formula to calculate distance between two coordinates
-    // Source: https://gist.github.com/vananth22/888ed9a22105670e7a4092bdcf0d72e4
-
-    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
-        final int R = 6371;
-        double latDistance = Math.toRadians(lat2 - lat1);
-        double lonDistance = Math.toRadians(lon2 - lon1);
-        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2)
-                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
-                + Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
-        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        return R * c;
-    }
-
-    private Order findClosestOrder(Order currentOrder, List<Order> remainingOrders) {
-        Order closestOrder = null;
+    private Truck findClosestTruck(Order order, List<Truck> trucks) {
+        Truck closestTruck = null;
         double closestDistance = Double.MAX_VALUE;
 
-        double currentLat = currentOrder.getDeliveryLatitude();
-        double currentLon = currentOrder.getDeliveryLongitude();
-
-        for (Order order : remainingOrders) {
-            double distance = calculateDistance(currentLat, currentLon,
-                    order.getDeliveryLatitude(), order.getDeliveryLongitude());
-
+        for (Truck truck : trucks) {
+            double distance = calculateDistance(order.getDeliveryLatitude(), order.getDeliveryLongitude(), truck.getLatitude(), truck.getLongitude());
             if (distance < closestDistance) {
                 closestDistance = distance;
-                closestOrder = order;
+                closestTruck = truck;
             }
         }
 
-        return closestOrder;
+        return closestTruck;
+    }
+
+    private void splitAndAddOrder(OrderCluster cluster, Order order, List<Order> remainingOrders) {
+        while (order.getTotalVolume() > MAX_CAPACITY_M3 || order.getTotalWeight() > MAX_WEIGHT) {
+            Order partialOrder = orderService.splitOrder(order, MAX_CAPACITY_M3 - cluster.getTotalVolume(), MAX_WEIGHT - cluster.getTotalWeight());
+            cluster.addOrder(partialOrder);
+            orderService.markOrderAsClustered(partialOrder);
+        }
+        cluster.addOrder(order);
+        remainingOrders.remove(order);
+        orderService.saveOrder(order); // Ensure the updated order is saved
+    }
+
+    private Order findBestOrder(OrderCluster cluster, List<Order> remainingOrders) {
+        PriorityQueue<Order> priorityQueue = new PriorityQueue<>(Comparator.comparingDouble(o -> calculateDistance(cluster.getCenterLatitude(), cluster.getCenterLongitude(), o.getDeliveryLatitude(), o.getDeliveryLongitude())));
+
+        for (Order order : remainingOrders) {
+            if (cluster.getTotalVolume() + order.getTotalVolume() <= MAX_CAPACITY_M3 && cluster.getTotalWeight() + order.getTotalWeight() <= MAX_WEIGHT) {
+                priorityQueue.add(order);
+            }
+        }
+
+        return priorityQueue.isEmpty() ? null : priorityQueue.poll();
+    }
+
+    public double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+        final int R = 6371; // Radius of the Earth in kilometers
+        double latDistance = Math.toRadians(lat2 - lat1);
+        double lonDistance = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2) +
+                Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+                        Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return R * c;
     }
 
     public static void printOrderClusters(List<OrderCluster> clusters) {
         for (int i = 0; i < clusters.size(); i++) {
             OrderCluster cluster = clusters.get(i);
-            System.out.println("Cluster " + (i + 1) + ":");
+            System.out.println("Cluster " + (i + 1) + " (Truck " + cluster.getTruck().getId() + "):");
             for (Order order : cluster.getOrders()) {
                 System.out.println("  Order ID: " + order.getId() +
                         ", Volume: " + order.getTotalVolume() +

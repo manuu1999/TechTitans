@@ -16,14 +16,14 @@ public class RouteStop {
     @Column(name = "route_stop_id", nullable = false)
     private Integer id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "route_id", nullable = false)
     private Route route;
 
     @Column(name = "stop_sequence", nullable = false)
     private Integer stopSequence;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "delivery_address_id", nullable = false)
     private DeliveryAddresses deliveryAddress;
 }

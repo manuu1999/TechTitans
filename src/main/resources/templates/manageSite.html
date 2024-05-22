@@ -61,22 +61,6 @@
             </tbody>
         </table>
     </div>
-    <a href="@{/manageSite/clusterOrders}" class="btn btn-success">Cluster Orders</a>
-    <div th:if="${clusters != null}">
-        <h2>Clustered Orders</h2>
-        <div th:each="cluster : ${clusters}">
-            <h3>Cluster</h3>
-            <ul>
-                <li th:each="order : ${cluster.orders}">
-                    Order ID: <span th:text="${order.id}"></span>,
-                    Total Volume: <span th:text="${order.totalVolume}"></span>,
-                    Total Weight: <span th:text="${order.totalWeight}"></span>,
-                    Delivery Latitude: <span th:text="${order.deliveryLatitude}"></span>,
-                    Delivery Longitude: <span th:text="${order.deliveryLongitude}"></span>
-                </li>
-            </ul>
-        </div>
-    </div>
     <a href="/" class="btn btn-secondary">Back to Home</a>
 </div>
 

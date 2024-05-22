@@ -29,4 +29,16 @@ public class OrderService {
         orderRepository.deleteById(id);
     }
 
+    public Order splitOrder(Order order, float maxVolume, float maxWeight) {
+        Order newOrder = order.split(maxVolume, maxWeight);
+        // Save the new order and update the original order in the database
+        saveOrder(newOrder);
+        saveOrder(order); // Update the original order after splitting
+        return newOrder;
+    }
+
+    public void markOrderAsClustered(Order order) {
+        order.setInCluster(true);
+        saveOrder(order);
+    }
 }

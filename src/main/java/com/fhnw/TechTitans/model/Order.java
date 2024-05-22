@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -22,47 +23,77 @@ public class Order {
     @Column(name = "timestamp", nullable = false)
     private LocalDateTime timestamp;
 
-    @ManyToOne
-    @JoinColumn(name = "customer_customer_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
 
     @Column(name = "expected_delivery_date")
     private LocalDateTime expectedDeliveryDate;
 
-    @OneToMany(mappedBy = "order")
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<OrderProduct> orderProducts;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "delivery_id", nullable = false)
     private DeliveryAddresses deliveryAddress;
 
-    // Method to calculate the total volume of the order
+    @Column(name = "in_cluster", nullable = false)
+    private boolean inCluster = false;
+
     public float getTotalVolume() {
-        float totalVolume = 0;
-        for (OrderProduct orderProduct : orderProducts) {
-            totalVolume += orderProduct.getProduct().getSizeInM3() * orderProduct.getQuantity();
-        }
-        return totalVolume;
+        return orderProducts.stream()
+                .map(op -> op.getProduct().getSizeInM3() * op.getQuantity())
+                .reduce(0f, Float::sum);
     }
 
-    // Method to calculate the total weight of the order
     public float getTotalWeight() {
-        float totalWeight = 0;
-        for (OrderProduct orderProduct : orderProducts) {
-            totalWeight += orderProduct.getProduct().getGrossWeight() * orderProduct.getQuantity();
-        }
-        return totalWeight;
+        return orderProducts.stream()
+                .map(op -> op.getProduct().getGrossWeight() * op.getQuantity())
+                .reduce(0f, Float::sum);
     }
 
-    // Method to get the latitude of the delivery address
     public Double getDeliveryLatitude() {
         return deliveryAddress != null ? deliveryAddress.getLatitude() : null;
     }
 
-    // Method to get the longitude of the delivery address
     public Double getDeliveryLongitude() {
         return deliveryAddress != null ? deliveryAddress.getLongitude() : null;
     }
 
+    public Order split(float maxVolume, float maxWeight) {
+        Order newOrder = new Order();
+        newOrder.setCustomer(this.customer);
+        newOrder.setDeliveryAddress(this.deliveryAddress);
+        newOrder.setTimestamp(LocalDateTime.now()); // Ensure the split order has a new timestamp
+        newOrder.setExpectedDeliveryDate(this.expectedDeliveryDate);
+        List<OrderProduct> splitProducts = new ArrayList<>();
+        float splitVolume = 0;
+        float splitWeight = 0;
 
+        for (OrderProduct product : new ArrayList<>(orderProducts)) {
+            if (splitVolume + product.getProduct().getSizeInM3() <= maxVolume && splitWeight + product.getProduct().getGrossWeight() <= maxWeight) {
+                splitProducts.add(product);
+                splitVolume += product.getProduct().getSizeInM3();
+                splitWeight += product.getProduct().getGrossWeight();
+                orderProducts.remove(product);
+            }
+        }
+
+        newOrder.setOrderProducts(splitProducts);
+        for (OrderProduct op : splitProducts) {
+            op.setOrder(newOrder); // Ensure orderProducts are properly set for the new order
+        }
+
+        return newOrder;
+    }
+
+    public void updateAfterSplit(Order partialOrder) {
+        float remainingVolume = 0;
+        float remainingWeight = 0;
+
+        for (OrderProduct product : orderProducts) {
+            remainingVolume += product.getProduct().getSizeInM3();
+            remainingWeight += product.getProduct().getGrossWeight();
+        }
+    }
 }

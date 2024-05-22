@@ -25,11 +25,11 @@ public class DeliveryAddresses {
     @Column(name = "longitude", nullable = false)
     private Double longitude;
 
-    @ManyToOne
-    @JoinColumn(name = "route_route_id", referencedColumnName = "route_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "route_id", referencedColumnName = "route_id")
     private Route route;
 
-    @ManyToOne
-    @JoinColumn(name = "customer_customer_id", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
 }
