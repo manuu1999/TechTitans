@@ -39,6 +39,15 @@ public class Product {
     @Column(name = "gross_weight", nullable = false)
     private Float grossWeight;
 
+    @Column(name = "image_url")
+    private String imageUrl;
+
     @OneToMany(mappedBy = "product")
     private List<OrderProduct> orderProducts;
+
+    @PrePersist
+    @PreUpdate
+    private void calculateSizeInM3() {
+        this.sizeInM3 = this.lengthInM * this.heightInM * this.depthInM;
+    }
 }

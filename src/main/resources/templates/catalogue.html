@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Product Catalogue</title>
+  <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container">
+  <h1>Product Catalogue</h1>
+  <div class="row">
+    <div class="col-md-12">
+      <table class="table table-bordered">
+        <thead>
+        <tr>
+          <th>Name</th>
+          <th>Price</th>
+          <th>Dimensions (m)</th>
+          <th>Volume (m³)</th>
+          <th>Weight (kg)</th>
+          <th>Quantity</th>
+          <th>Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="product : ${products}">
+          <td th:text="${product.productName}">Product Name</td>
+          <td th:text="${product.price}">Price</td>
+          <td th:text="${product.lengthInM} + ' x ' + ${product.heightInM} + ' x ' + ${product.depthInM}">Dimensions</td>
+          <td th:text="${product.sizeInM3}">Volume</td>
+          <td th:text="${product.grossWeight}">Weight</td>
+          <td>
+            <form th:action="@{/shop/add-to-basket}" method="post">
+              <input type="hidden" name="productId" th:value="${product.id}"/>
+              <input type="number" name="quantity" value="1" min="1" class="form-control"/>
+          </td>
+          <td>
+            <button type="submit" class="btn btn-primary">Add to Basket</button>
+            </form>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</body>
+</html>

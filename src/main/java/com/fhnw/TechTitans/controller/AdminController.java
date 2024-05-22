@@ -1,7 +1,10 @@
 package com.fhnw.TechTitans.controller;
 
+import com.fhnw.TechTitans.model.Product;
 import com.fhnw.TechTitans.model.User;
+import com.fhnw.TechTitans.service.ProductService;
 import com.fhnw.TechTitans.service.UserService;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,10 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -23,7 +23,8 @@ public class AdminController {
     @Autowired
     private UserService userService;
 
-
+    @Autowired
+    private ProductService productService;
 
     Logger logger = LogManager.getLogger(AdminController.class);
 
@@ -33,6 +34,8 @@ public class AdminController {
         User currentUser = userService.findByUsername(auth.getName());
         model.addAttribute("currentUser", currentUser);
         model.addAttribute("users", userService.getAllUsers());
+        model.addAttribute("products", productService.findAll());
+        model.addAttribute("product", new Product());
         return "manageSite";
     }
 
@@ -60,5 +63,39 @@ public class AdminController {
         return "redirect:/manageSite";
     }
 
+    // Display form for adding a new product
+    @GetMapping("/addProduct")
+    public String showAddProductForm(Model model) {
+        model.addAttribute("product", new Product());
+        return "addProduct";
+    }
 
+    // Handle form submission for adding a new product
+    @PostMapping("/addProduct")
+    public String addProduct(Product product) {
+        productService.save(product);
+        return "redirect:/admin/manageSite";
+    }
+
+    // Display form for editing an existing product
+    @GetMapping("/editProduct/{id}")
+    public String showEditProductForm(@PathVariable("id") Integer id, Model model) {
+        Product product = productService.findById(id);
+        model.addAttribute("product", product);
+        return "editProduct";
+    }
+
+    // Handle form submission for editing an existing product
+    @PostMapping("/editProduct")
+    public String editProduct(Product product) {
+        productService.save(product);
+        return "redirect:/admin/manageSite";
+    }
+
+    // Handle form submission for deleting an existing product
+    @GetMapping("/deleteProduct/{productId}")
+    public String deleteProduct(@PathVariable("productId") Integer productId) {
+        productService.deleteProduct(productId);
+        return "redirect:/admin/manageSite";
+    }
 }

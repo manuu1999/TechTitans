@@ -29,4 +29,7 @@ public class OrderService {
         orderRepository.deleteById(id);
     }
 
+    public void save(Order order) {
+        orderRepository.save(order);
+    }
 }

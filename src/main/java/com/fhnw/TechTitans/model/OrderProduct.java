@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class OrderProduct {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
+    @Column(name = "order_product_id", nullable = false)
     private Integer id;
 
     @ManyToOne

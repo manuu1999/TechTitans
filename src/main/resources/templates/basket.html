@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Basket</title>
+  <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container">
+  <h1>Your Basket</h1>
+  <div class="row">
+    <div class="col-md-12">
+      <table class="table table-bordered">
+        <thead>
+        <tr>
+          <th>Name</th>
+          <th>Price</th>
+          <th>Quantity</th>
+          <th>Total</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="orderProduct : ${basket}">
+          <td th:text="${orderProduct.product.productName}">Product Name</td>
+          <td th:text="${orderProduct.product.price}">Price</td>
+          <td th:text="${orderProduct.quantity}">Quantity</td>
+          <td th:text="${orderProduct.product.price * orderProduct.quantity}">Total</td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="row">
+    <div class="col-md-12">
+      <form th:action="@{/customer/place-order}" method="post">
+        <input type="hidden" name="customerId" value="1"/> <!-- Replace with dynamic customer ID -->
+        <input type="hidden" name="addressId" value="1"/> <!-- Replace with dynamic address ID -->
+        <button type="submit" class="btn btn-success">Place Order</button>
+      </form>
+    </div>
+  </div>
+</div>
+</body>
+</html>
