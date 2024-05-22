@@ -39,6 +39,6 @@ public class Product {
     @Column(name = "gross_weight", nullable = false)
     private Float grossWeight;
 
-    @ManyToMany(mappedBy = "products")
-    private List<Order> orders;
+    @OneToMany(mappedBy = "product")
+    private List<OrderProduct> orderProducts;
 }

@@ -1,7 +1,13 @@
 package com.fhnw.TechTitans.controller;
 
 import com.fhnw.TechTitans.model.User;
+import com.fhnw.TechTitans.model.Order;
+import com.fhnw.TechTitans.model.Truck;
+import com.fhnw.TechTitans.model.OrderCluster;
 import com.fhnw.TechTitans.service.UserService;
+import com.fhnw.TechTitans.service.ClusteringService;
+import com.fhnw.TechTitans.service.OrderService;
+import com.fhnw.TechTitans.service.TruckService;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +20,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.List;
+
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
@@ -21,8 +29,9 @@ public class AdminController {
     @Autowired
     private UserService userService;
 
-    Logger logger = LogManager.getLogger(AdminController.class);
 
+
+    Logger logger = LogManager.getLogger(AdminController.class);
 
     @GetMapping("/manageSite")
     public String getManageSite(Model model) {
@@ -56,4 +65,6 @@ public class AdminController {
         }
         return "redirect:/manageSite";
     }
+
+
 }

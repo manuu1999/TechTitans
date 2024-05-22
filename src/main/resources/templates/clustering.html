@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cluster Orders</title>
+    <script>
+        async function clusterOrders() {
+            try {
+                const response = await fetch('/api/manageSite/clusterOrders', {
+                    method: 'GET'
+                });
+                if (response.ok) {
+                    alert('Orders have been clustered successfully.');
+                } else {
+                    alert('Error clustering orders.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error clustering orders.');
+            }
+        }
+    </script>
+</head>
+<body>
+<h1>Cluster Orders</h1>
+<button onclick="clusterOrders()">Cluster Orders</button>
+</body>
+</html>
