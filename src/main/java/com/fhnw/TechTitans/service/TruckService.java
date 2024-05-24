@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class TruckService {
@@ -16,6 +17,20 @@ public class TruckService {
     public List<Truck> getAllTrucks() {
         return truckRepository.findAll();
     }
+
+    public List<Truck> getAvailableTrucks() {
+        return truckRepository.findAll()
+                .stream()
+                .filter(truck -> "AVAILABLE".equals(truck.getStatus()))
+                .collect(Collectors.toList());
+    }
+
+    public void setTruckStatusUnavailable(Integer truckId) {
+        Truck truck = truckRepository.findById(truckId).orElseThrow(() -> new IllegalArgumentException("Truck not found"));
+        truck.setStatus("UNAVAILABLE");
+        truckRepository.save(truck);
+    }
+
 
     public void saveTruck(Truck truck) {
         truckRepository.save(truck);
