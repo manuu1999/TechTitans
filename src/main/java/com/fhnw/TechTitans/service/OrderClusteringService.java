@@ -42,24 +42,14 @@ public class OrderClusteringService {
             int j = pair[1];
 
             if (!clustered[i] && !clustered[j]) {
-                Order order1 = orders.get(i);
-                Order order2 = orders.get(j);
-                double totalWeight = order1.getTotalWeight() + order2.getTotalWeight();
-                double totalVolume = order1.getTotalVolume() + order2.getTotalVolume();
+                List<Order> newCluster = new ArrayList<>();
+                newCluster.add(orders.get(i));
+                newCluster.add(orders.get(j));
+                clustered[i] = true;
+                clustered[j] = true;
 
-                if (totalWeight <= MAX_WEIGHT && totalVolume <= MAX_VOLUME) {
-                    List<Order> newCluster = new ArrayList<>();
-                    newCluster.add(order1);
-                    newCluster.add(order2);
-                    clusters.add(newCluster);
-                    clustered[i] = true;
-                    clustered[j] = true;
-                    logger.info(String.format("Formed new cluster with orders %d and %d. Total Weight: %.2f, Total Volume: %.2f",
-                            order1.getId(), order2.getId(), totalWeight, totalVolume));
-                } else {
-                    logger.info(String.format("Skipping pairing orders %d and %d due to weight/volume constraints. Total Weight: %.2f, Total Volume: %.2f",
-                            order1.getId(), order2.getId(), totalWeight, totalVolume));
-                }
+                addClosestOrders(newCluster, orders, distances, clustered);
+                clusters.add(newCluster);
             }
         }
 
@@ -69,16 +59,52 @@ public class OrderClusteringService {
                 List<Order> newCluster = new ArrayList<>();
                 newCluster.add(orders.get(i));
                 clusters.add(newCluster);
+                clustered[i] = true;
                 logger.info(String.format("Formed new cluster with single order %d.", orders.get(i).getId()));
             }
         }
 
         logger.info("Finished clustering orders.");
-
-        // Log the comprehensive output of clusters
         logClusterDetails(clusters);
 
         return clusters;
+    }
+
+    private void addClosestOrders(List<Order> cluster, List<Order> orders, double[][] distances, boolean[] clustered) {
+        boolean added = true;
+
+        while (added) {
+            added = false;
+            double closestDistance = Double.MAX_VALUE;
+            int closestOrderIndex = -1;
+
+            for (Order clusterOrder : cluster) {
+                int clusterOrderIndex = orders.indexOf(clusterOrder);
+                for (int i = 0; i < orders.size(); i++) {
+                    if (!clustered[i]) {
+                        double distance = distances[clusterOrderIndex][i];
+                        if (distance < closestDistance) {
+                            closestDistance = distance;
+                            closestOrderIndex = i;
+                        }
+                    }
+                }
+            }
+
+            if (closestOrderIndex != -1) {
+                Order closestOrder = orders.get(closestOrderIndex);
+                double totalWeight = getTotalWeight(cluster) + closestOrder.getTotalWeight();
+                double totalVolume = getTotalVolume(cluster) + closestOrder.getTotalVolume();
+
+                if (totalWeight <= MAX_WEIGHT && totalVolume <= MAX_VOLUME) {
+                    cluster.add(closestOrder);
+                    clustered[closestOrderIndex] = true;
+                    added = true;
+                    logger.info(String.format("Added order %d to existing cluster. Total Weight: %.2f, Total Volume: %.2f",
+                            closestOrder.getId(), totalWeight, totalVolume));
+                }
+            }
+        }
     }
 
     private List<int[]> getSortedPairs(double[][] distances, int size) {
@@ -97,8 +123,8 @@ public class OrderClusteringService {
         logger.info("Comprehensive Clustering Output:");
         for (int i = 0; i < clusters.size(); i++) {
             List<Order> cluster = clusters.get(i);
-            float totalVolume = getTotalVolume(cluster);
-            float totalWeight = getTotalWeight(cluster);
+            double totalVolume = getTotalVolume(cluster);
+            double totalWeight = getTotalWeight(cluster);
 
             StringBuilder clusterDetails = new StringBuilder();
             clusterDetails.append(String.format("Cluster %d: Total Volume: %.2f, Total Weight: %.2f, Orders: ", i + 1, totalVolume, totalWeight));
@@ -116,11 +142,11 @@ public class OrderClusteringService {
         }
     }
 
-    private float getTotalVolume(List<Order> orders) {
-        return orders.stream().map(Order::getTotalVolume).reduce(0f, Float::sum);
+    private double getTotalVolume(List<Order> orders) {
+        return orders.stream().mapToDouble(Order::getTotalVolume).sum();
     }
 
-    private float getTotalWeight(List<Order> orders) {
-        return orders.stream().map(Order::getTotalWeight).reduce(0f, Float::sum);
+    private double getTotalWeight(List<Order> orders) {
+        return orders.stream().mapToDouble(Order::getTotalWeight).sum();
     }
 }
