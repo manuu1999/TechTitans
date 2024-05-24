@@ -40,9 +40,6 @@ public class Order {
     @Column(name = "in_cluster", nullable = false)
     private boolean inCluster = false;
 
-    @Column(name = "is_clustered", nullable = false)
-    private boolean isClustered = false;
-
     public float getTotalVolume() {
         return orderProducts.stream()
                 .map(op -> op.getProduct().getSizeInM3() * op.getQuantity())

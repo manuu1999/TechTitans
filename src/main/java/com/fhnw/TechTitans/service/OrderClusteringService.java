@@ -25,15 +25,12 @@ public class OrderClusteringService {
     @Autowired
     private TruckService truckService;
 
+    @Autowired
+    private ClusterAssignmentService clusterAssignmentService;
+
     private static final double MAX_WEIGHT = 80.0;
     private static final double MAX_VOLUME = 80.0;
 
-    /**
-     * Cluster orders based on the closest distances without exceeding weight and volume limits.
-     *
-     * @param orders List of orders to be clustered.
-     * @return List of clusters, where each cluster is a list of orders.
-     */
     public List<List<Order>> clusterOrders(List<Order> orders) {
         logger.info("Filtering out orders that are already in a cluster.");
         orders = orders.stream()
@@ -84,8 +81,6 @@ public class OrderClusteringService {
 
                 addClosestOrders(newCluster, orders, distances, clustered);
                 clusters.add(newCluster);
-
-                truckService.setTruckStatusUnavailable(availableTrucks.get(clusters.size() - 1).getId());
             }
         }
 
@@ -103,13 +98,14 @@ public class OrderClusteringService {
                 clustered[i] = true;
                 orderService.markOrderAsClustered(orders.get(i));
                 logger.info(String.format("Formed new cluster with single order %d.", orders.get(i).getId()));
-
-                truckService.setTruckStatusUnavailable(availableTrucks.get(clusters.size() - 1).getId());
             }
         }
 
         logger.info("Finished clustering orders.");
         logClusterDetails(clusters);
+
+        // Assign clusters to trucks
+        clusterAssignmentService.assignClustersToTrucks(clusters);
 
         return clusters;
     }

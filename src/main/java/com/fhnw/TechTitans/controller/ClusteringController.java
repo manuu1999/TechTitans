@@ -43,7 +43,7 @@ public class ClusteringController {
         return orderClusteringService.clusterOrders(orders);
     }
 
-    @GetMapping("/clustering-page")
+    @GetMapping("/clustering")
     public String clusteringPage() {
         return "clustering";
     }
