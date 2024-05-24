@@ -18,6 +18,38 @@
     </style>
 </head>
 <body>
+
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="#">Truck Tours</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item" th:if="${role == 'ADMIN'}">
+                    <a class="nav-link" th:href="@{/manageSite}">Admin Panel</a>
+                </li>
+                <li class="nav-item" th:if="${role == 'TRUCKDRIVER'}">
+                    <a class="nav-link" th:href="@{/deliveries}">My Routes</a>
+                </li>
+                <li class="nav-item" th:if="${role == 'SHIPPER'}">
+                    <a class="nav-link" th:href="@{/shipments}">My Shipments</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/logout}">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
 <div class="container">
     <h1>Admin Panel</h1>
     <div th:if="${error}" class="alert alert-danger" role="alert">
@@ -112,7 +144,6 @@
         </div>
         <button type="submit" class="btn btn-primary">Add Product</button>
     </form>
-    <a href="@{/admin/manageSite}" class="btn btn-secondary">Back to Admin Panel</a>
 </div>
 <div class="container">
     <h2>Products</h2>
@@ -140,7 +171,20 @@
         </tr>
         </tbody>
     </table>
+    <a href="@{/admin/manageSite}" class="btn btn-secondary">Back to Admin Panel</a>
+
 </div>
+
+<!-- Footer -->
+<footer class="bg-dark text-white mt-4">
+    <div class="container-fluid py-3">
+        <div class="row">
+            <div class="col-md-7">
+                <p class="text-muted mb-0 py-2">© 2024 Truck Tour Planning Co. All rights reserved.</p>
+            </div>
+        </div>
+    </div>
+</footer>
 <script src="/static/js/jquery.min.js"></script>
 <script src="/static/js/bootstrap.min.js"></script>
 </body>
