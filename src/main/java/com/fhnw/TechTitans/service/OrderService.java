@@ -38,10 +38,13 @@ public class OrderService {
 
     public void markOrderAsClustered(Order order) {
         order.setInCluster(true);
-        saveOrder(order);
+        saveOrder(order);  // as soon as it gets assigned to a cluster, it should be set to true
     }
+
 
     public List<Order> getOrdersByIds(List<Integer> ids) {
         return orderRepository.findAllById(ids);
     }
+
+
 }

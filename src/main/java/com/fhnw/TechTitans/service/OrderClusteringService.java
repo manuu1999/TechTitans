@@ -1,6 +1,7 @@
 package com.fhnw.TechTitans.service;
 
 import com.fhnw.TechTitans.model.Order;
+import com.fhnw.TechTitans.model.Truck;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -8,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 @Service
 public class OrderClusteringService {
@@ -16,6 +18,12 @@ public class OrderClusteringService {
 
     @Autowired
     private OrderDistancesService orderDistancesService;
+
+    @Autowired
+    private OrderService orderService;
+
+    @Autowired
+    private TruckService truckService;
 
     private static final double MAX_WEIGHT = 80.0;
     private static final double MAX_VOLUME = 80.0;
@@ -27,6 +35,24 @@ public class OrderClusteringService {
      * @return List of clusters, where each cluster is a list of orders.
      */
     public List<List<Order>> clusterOrders(List<Order> orders) {
+        logger.info("Filtering out orders that are already in a cluster.");
+        orders = orders.stream()
+                .filter(order -> !order.isInCluster())
+                .collect(Collectors.toList());
+
+        if (orders.isEmpty()) {
+            logger.info("No orders to cluster. All orders are already in a cluster.");
+            return new ArrayList<>();
+        }
+
+        List<Truck> availableTrucks = truckService.getAvailableTrucks();
+        int availableTruckCount = availableTrucks.size();
+
+        if (availableTruckCount == 0) {
+            logger.info("No available trucks for clustering.");
+            return new ArrayList<>();
+        }
+
         logger.info("Starting to calculate all distances between orders.");
         double[][] distances = orderDistancesService.calculateAllDistances(orders);
         int size = orders.size();
@@ -38,6 +64,11 @@ public class OrderClusteringService {
 
         logger.info("Forming clusters based on sorted distances and constraints.");
         for (int[] pair : sortedPairs) {
+            if (clusters.size() >= availableTruckCount) {
+                logger.info("Reached the limit of available trucks. Stopping cluster formation.");
+                break;
+            }
+
             int i = pair[0];
             int j = pair[1];
 
@@ -48,19 +79,32 @@ public class OrderClusteringService {
                 clustered[i] = true;
                 clustered[j] = true;
 
+                orderService.markOrderAsClustered(orders.get(i));
+                orderService.markOrderAsClustered(orders.get(j));
+
                 addClosestOrders(newCluster, orders, distances, clustered);
                 clusters.add(newCluster);
+
+                truckService.setTruckStatusUnavailable(availableTrucks.get(clusters.size() - 1).getId());
             }
         }
 
         logger.info("Handling remaining unclustered orders.");
         for (int i = 0; i < size; i++) {
+            if (clusters.size() >= availableTruckCount) {
+                logger.info("Reached the limit of available trucks. Stopping cluster formation.");
+                break;
+            }
+
             if (!clustered[i]) {
                 List<Order> newCluster = new ArrayList<>();
                 newCluster.add(orders.get(i));
                 clusters.add(newCluster);
                 clustered[i] = true;
+                orderService.markOrderAsClustered(orders.get(i));
                 logger.info(String.format("Formed new cluster with single order %d.", orders.get(i).getId()));
+
+                truckService.setTruckStatusUnavailable(availableTrucks.get(clusters.size() - 1).getId());
             }
         }
 
@@ -99,6 +143,7 @@ public class OrderClusteringService {
                 if (totalWeight <= MAX_WEIGHT && totalVolume <= MAX_VOLUME) {
                     cluster.add(closestOrder);
                     clustered[closestOrderIndex] = true;
+                    orderService.markOrderAsClustered(closestOrder);
                     added = true;
                     logger.info(String.format("Added order %d to existing cluster. Total Weight: %.2f, Total Volume: %.2f",
                             closestOrder.getId(), totalWeight, totalVolume));
