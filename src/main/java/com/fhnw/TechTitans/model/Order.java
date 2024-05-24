@@ -99,4 +99,24 @@ public class Order {
             remainingWeight += product.getProduct().getGrossWeight();
         }
     }
+
+    public void setIsClustered(boolean b) {
+        inCluster = b;
+    }
+
+    public double getLatitude() {
+        return getDeliveryLatitude();
+    }
+
+    public double getLongitude() {
+        return getDeliveryLongitude();
+    }
+
+    public float getVolume() {
+        return getTotalVolume();
+    }
+
+    public float getWeight() {
+        return getTotalWeight();
+    }
 }

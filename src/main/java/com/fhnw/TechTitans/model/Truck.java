@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Objects;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -32,13 +34,21 @@ public class Truck {
     private Double longitude;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "depot_depot_id", nullable = false)
+    @JoinColumn(name = "depot_id", nullable = false)
     private Depot depot;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Column(name = "status", nullable = false, length = 20)
     private String status;
+
+    public boolean isAvailable() {
+        return Objects.equals(status, "AVAILABLE");
+    }
+
+    public void setAvailable(boolean b) {
+        status = b ? "AVAILABLE" : "UNAVAILABLE";
+    }
 }

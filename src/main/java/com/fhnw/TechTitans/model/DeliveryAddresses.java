@@ -32,4 +32,8 @@ public class DeliveryAddresses {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
+
+    public Object getAddress() {
+        return deliveryAddress;
+    }
 }

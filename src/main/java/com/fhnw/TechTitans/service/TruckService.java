@@ -16,4 +16,8 @@ public class TruckService {
     public List<Truck> getAllTrucks() {
         return truckRepository.findAll();
     }
+
+    public void saveTruck(Truck truck) {
+        truckRepository.save(truck);
+    }
 }
