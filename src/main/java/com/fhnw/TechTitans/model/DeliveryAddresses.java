@@ -4,12 +4,14 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @Table(name = "delivery_addresses")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "customer"})
 public class DeliveryAddresses {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

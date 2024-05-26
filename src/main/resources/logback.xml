@@ -5,9 +5,18 @@
         </encoder>
     </appender>
 
-    <root level="INFO">
+    <!-- Set the root logger to WARN -->
+    <root level="WARN">
         <appender-ref ref="CONSOLE" />
     </root>
 
-    <logger name="com.fhnw.TechTitans" level="DEBUG" />
+    <!-- Set specific loggers to INFO or DEBUG as needed -->
+    <logger name="com.fhnw.TechTitans" level="INFO" />
+    <logger name="org.springframework" level="ERROR" />
+    <logger name="org.hibernate" level="ERROR" />
+
+    <!-- Optionally, reduce logging from other common libraries -->
+    <logger name="org.apache" level="ERROR" />
+    <logger name="org.eclipse" level="ERROR" />
+    <logger name="org.jboss" level="ERROR" />
 </configuration>

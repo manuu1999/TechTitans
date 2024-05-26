@@ -4,14 +4,15 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import java.util.Objects;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @Table(name = "truck")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler", "depot", "user"})
 public class Truck {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -1,9 +1,8 @@
 package com.fhnw.TechTitans.controller;
 
+import com.fhnw.TechTitans.model.ClusterAssignment;
 import com.fhnw.TechTitans.model.Order;
-import com.fhnw.TechTitans.service.OrderClusteringService;
-import com.fhnw.TechTitans.service.OrderDistancesService;
-import com.fhnw.TechTitans.service.OrderService;
+import com.fhnw.TechTitans.service.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +11,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 public class ClusteringController {
@@ -24,6 +24,9 @@ public class ClusteringController {
 
     @Autowired
     private OrderClusteringService orderClusteringService;
+
+    @Autowired
+    private ClusterAssignmentService clusterAssignmentService;
 
     private static final Logger logger = LogManager.getLogger(ClusteringController.class);
 
@@ -46,5 +49,12 @@ public class ClusteringController {
     @GetMapping("/clustering")
     public String clusteringPage() {
         return "clustering";
+    }
+
+    @GetMapping("/api/clusters")
+    @ResponseBody
+    public List<ClusterDTO> getClusters() {
+        logger.info("Fetching clusters with assigned trucks and orders.");
+        return clusterAssignmentService.getAllClusterAssignments();
     }
 }

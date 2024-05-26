@@ -4,12 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cluster Orders</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <style>
+        #map {
+            height: 600px;
+            width: 100%;
+            margin-top: 20px;
+        }
+    </style>
     <script>
+        let map;
+
         async function calculateDistance() {
             try {
-                const response = await fetch('/calculate-distances', {
-                    method: 'GET'
-                });
+                const response = await fetch('/calculate-distances', { method: 'GET' });
                 if (response.ok) {
                     alert('Distances calculated successfully.');
                 } else {
@@ -23,12 +32,11 @@
 
         async function clusterOrders() {
             try {
-                const response = await fetch('/cluster-orders', {
-                    method: 'GET'
-                });
+                const response = await fetch('/cluster-orders', { method: 'GET' });
                 if (response.ok) {
                     const clusters = await response.json();
                     alert('Clustering completed successfully. Number of clusters: ' + clusters.length);
+                    addClustersToMap(clusters);
                 } else {
                     alert('Error during clustering.');
                 }
@@ -37,11 +45,81 @@
                 alert('Error during clustering.');
             }
         }
+
+        async function loadClusters() {
+            try {
+                const response = await fetch('/api/clusters');
+                if (response.ok) {
+                    const clusters = await response.json();
+                    console.log('Fetched clusters:', clusters); // Debugging log
+                    addClustersToMap(clusters);
+                } else {
+                    console.error('Error fetching clusters:', response.statusText);
+                }
+            } catch (error) {
+                console.error('Error fetching clusters:', error);
+            }
+        }
+
+        function adjustCoordinates(lat, lon, index) {
+            // Adjust coordinates slightly to prevent overlapping markers
+            const offset = 0.0001 * index;
+            return [lat + offset, lon + offset];
+        }
+
+        function addClustersToMap(clusters) {
+            if (!map) {
+                map = L.map('map').setView([47.3769, 8.5417], 12); // Centered on Zurich
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+            }
+
+            const colors = ['red', 'blue', 'green', 'purple', 'orange', 'yellow', 'brown', 'pink', 'grey', 'cyan'];
+
+            clusters.forEach((cluster, index) => {
+                console.log(`Processing cluster ${index}:`, cluster);
+
+                const color = colors[index % colors.length];
+                const orders = cluster.orders || [];
+                const truck = cluster.truck;
+
+                orders.forEach(order => {
+                    if (typeof order.deliveryLatitude === 'undefined' || typeof order.deliveryLongitude === 'undefined') {
+                        console.error('Order is missing latitude or longitude:', order);
+                        return;
+                    }
+                    L.circleMarker([order.deliveryLatitude, order.deliveryLongitude], {
+                        color: color,
+                        radius: 8,
+                        fillColor: color,
+                        fillOpacity: 0.5
+                    }).addTo(map)
+                    .bindPopup(`Order ID: ${order.id}`);
+                });
+
+                if (truck && typeof truck.latitude !== 'undefined' && typeof truck.longitude !== 'undefined') {
+                    const adjustedCoordinates = adjustCoordinates(truck.latitude, truck.longitude, index);
+                    L.circleMarker(adjustedCoordinates, {
+                        color: 'black',
+                        radius: 12,
+                        fillColor: color,
+                        fillOpacity: 0.5,
+                        weight: 2
+                    }).addTo(map)
+                    .bindPopup(`Truck ID: ${truck.id}`);
+                } else {
+                    console.error('Truck is missing latitude or longitude:', truck);
+                }
+            });
+        }
     </script>
 </head>
 <body>
 <h1>Cluster Orders</h1>
 <button onclick="calculateDistance()">Calculate Distances</button>
 <button onclick="clusterOrders()">Cluster Orders</button>
+<button onclick="loadClusters()">Load Clusters</button>
+<div id="map"></div>
 </body>
 </html>

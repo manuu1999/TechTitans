@@ -28,17 +28,17 @@ public class OrderClusteringService {
     @Autowired
     private ClusterAssignmentService clusterAssignmentService;
 
-    private static final double MAX_WEIGHT = 80.0;
-    private static final double MAX_VOLUME = 80.0;
+    private static final double MAX_WEIGHT = 6000.0;
+    private static final double MAX_VOLUME = 40.0;
+
+    // Inside the OrderClusteringService class
 
     public List<List<Order>> clusterOrders(List<Order> orders) {
-        logger.info("Filtering out orders that are already in a cluster.");
         orders = orders.stream()
                 .filter(order -> !order.isInCluster())
                 .collect(Collectors.toList());
 
         if (orders.isEmpty()) {
-            logger.info("No orders to cluster. All orders are already in a cluster.");
             return new ArrayList<>();
         }
 
@@ -46,23 +46,18 @@ public class OrderClusteringService {
         int availableTruckCount = availableTrucks.size();
 
         if (availableTruckCount == 0) {
-            logger.info("No available trucks for clustering.");
             return new ArrayList<>();
         }
 
-        logger.info("Starting to calculate all distances between orders.");
         double[][] distances = orderDistancesService.calculateAllDistances(orders);
         int size = orders.size();
         List<List<Order>> clusters = new ArrayList<>();
         boolean[] clustered = new boolean[size];
 
-        logger.info("Sorting all pairs of orders by distance.");
         List<int[]> sortedPairs = getSortedPairs(distances, size);
 
-        logger.info("Forming clusters based on sorted distances and constraints.");
         for (int[] pair : sortedPairs) {
             if (clusters.size() >= availableTruckCount) {
-                logger.info("Reached the limit of available trucks. Stopping cluster formation.");
                 break;
             }
 
@@ -84,10 +79,8 @@ public class OrderClusteringService {
             }
         }
 
-        logger.info("Handling remaining unclustered orders.");
         for (int i = 0; i < size; i++) {
             if (clusters.size() >= availableTruckCount) {
-                logger.info("Reached the limit of available trucks. Stopping cluster formation.");
                 break;
             }
 
@@ -97,18 +90,14 @@ public class OrderClusteringService {
                 clusters.add(newCluster);
                 clustered[i] = true;
                 orderService.markOrderAsClustered(orders.get(i));
-                logger.info(String.format("Formed new cluster with single order %d.", orders.get(i).getId()));
             }
         }
 
-        logger.info("Finished clustering orders.");
-        logClusterDetails(clusters);
-
-        // Assign clusters to trucks
         clusterAssignmentService.assignClustersToTrucks(clusters);
 
         return clusters;
     }
+
 
     private void addClosestOrders(List<Order> cluster, List<Order> orders, double[][] distances, boolean[] clustered) {
         boolean added = true;
@@ -141,12 +130,11 @@ public class OrderClusteringService {
                     clustered[closestOrderIndex] = true;
                     orderService.markOrderAsClustered(closestOrder);
                     added = true;
-                    logger.info(String.format("Added order %d to existing cluster. Total Weight: %.2f, Total Volume: %.2f",
-                            closestOrder.getId(), totalWeight, totalVolume));
                 }
             }
         }
     }
+
 
     private List<int[]> getSortedPairs(double[][] distances, int size) {
         List<int[]> pairs = new ArrayList<>();

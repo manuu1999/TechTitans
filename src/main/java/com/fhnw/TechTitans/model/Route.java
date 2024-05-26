@@ -4,12 +4,14 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
 @Table(name = "route")
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Route {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
