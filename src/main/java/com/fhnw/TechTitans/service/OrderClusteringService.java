@@ -30,8 +30,7 @@ public class OrderClusteringService {
 
     private static final double MAX_WEIGHT = 6000.0;
     private static final double MAX_VOLUME = 40.0;
-
-    // Inside the OrderClusteringService class
+    private static final double MAX_AREA = 1400.0;
 
     public List<List<Order>> clusterOrders(List<Order> orders) {
         orders = orders.stream()
@@ -95,9 +94,10 @@ public class OrderClusteringService {
 
         clusterAssignmentService.assignClustersToTrucks(clusters);
 
+        logClusterDetails(clusters);
+
         return clusters;
     }
-
 
     private void addClosestOrders(List<Order> cluster, List<Order> orders, double[][] distances, boolean[] clustered) {
         boolean added = true;
@@ -126,15 +126,24 @@ public class OrderClusteringService {
                 double totalVolume = getTotalVolume(cluster) + closestOrder.getTotalVolume();
 
                 if (totalWeight <= MAX_WEIGHT && totalVolume <= MAX_VOLUME) {
-                    cluster.add(closestOrder);
-                    clustered[closestOrderIndex] = true;
-                    orderService.markOrderAsClustered(closestOrder);
-                    added = true;
+                    List<Order> potentialCluster = new ArrayList<>(cluster);
+                    potentialCluster.add(closestOrder);
+                    double newArea = orderService.calculateClusterArea(potentialCluster);
+
+                    logger.info(String.format("Trying to add Order %d to cluster. New area would be %.2f", closestOrder.getId(), newArea));
+
+                    if (newArea <= MAX_AREA || cluster.size() < 2) {  // Allow adding first two points without area check
+                        cluster.add(closestOrder);
+                        clustered[closestOrderIndex] = true;
+                        orderService.markOrderAsClustered(closestOrder);
+                        added = true;
+                    } else {
+                        logger.info(String.format("Cannot add Order %d to cluster. Exceeds max area: %.2f > %.2f", closestOrder.getId(), newArea, MAX_AREA));
+                    }
                 }
             }
         }
     }
-
 
     private List<int[]> getSortedPairs(double[][] distances, int size) {
         List<int[]> pairs = new ArrayList<>();
@@ -154,15 +163,15 @@ public class OrderClusteringService {
             List<Order> cluster = clusters.get(i);
             double totalVolume = getTotalVolume(cluster);
             double totalWeight = getTotalWeight(cluster);
+            double area = orderService.calculateClusterArea(cluster);
 
             StringBuilder clusterDetails = new StringBuilder();
-            clusterDetails.append(String.format("Cluster %d: Total Volume: %.2f, Total Weight: %.2f, Orders: ", i + 1, totalVolume, totalWeight));
+            clusterDetails.append(String.format("Cluster %d: Total Volume: %.2f, Total Weight: %.2f, Area: %.2f, Orders: ", i + 1, totalVolume, totalWeight, area));
 
             for (Order order : cluster) {
                 clusterDetails.append(String.format("Order %d (Volume: %.2f, Weight: %.2f), ", order.getId(), order.getTotalVolume(), order.getTotalWeight()));
             }
 
-            // Remove trailing comma and space
             if (clusterDetails.length() > 0) {
                 clusterDetails.setLength(clusterDetails.length() - 2);
             }

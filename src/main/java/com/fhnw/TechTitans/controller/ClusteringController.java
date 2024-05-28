@@ -1,8 +1,11 @@
 package com.fhnw.TechTitans.controller;
 
-import com.fhnw.TechTitans.model.ClusterAssignment;
 import com.fhnw.TechTitans.model.Order;
-import com.fhnw.TechTitans.service.*;
+import com.fhnw.TechTitans.service.ClusterAssignmentService;
+import com.fhnw.TechTitans.service.OrderClusteringService;
+import com.fhnw.TechTitans.service.OrderDistancesService;
+import com.fhnw.TechTitans.service.OrderService;
+import com.fhnw.TechTitans.service.ClusterDTO;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,10 +43,11 @@ public class ClusteringController {
 
     @GetMapping("/cluster-orders")
     @ResponseBody
-    public List<List<Order>> clusterOrders() {
+    public List<ClusterDTO> clusterOrders() {
         List<Order> orders = orderService.getAllOrders();
         logger.info("Clustering orders: {}", orders.stream().map(Order::getId).toList());
-        return orderClusteringService.clusterOrders(orders);
+        List<List<Order>> clusteredOrders = orderClusteringService.clusterOrders(orders);
+        return clusterAssignmentService.getAllClusterAssignments();
     }
 
     @GetMapping("/clustering")

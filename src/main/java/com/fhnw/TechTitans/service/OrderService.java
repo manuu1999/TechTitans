@@ -41,6 +41,11 @@ public class OrderService {
         saveOrder(order);  // as soon as it gets assigned to a cluster, it should be set to true
     }
 
+    public double calculateClusterArea(List<Order> cluster) {
+        AreaCalculatorService calculator = new AreaCalculatorService();
+        return calculator.calculateClusterArea(cluster);
+    }
+
 
     public List<Order> getOrdersByIds(List<Integer> ids) {
         return orderRepository.findAllById(ids);

@@ -12,6 +12,9 @@
             width: 100%;
             margin-top: 20px;
         }
+        .cluster-details {
+            margin-top: 20px;
+        }
     </style>
     <script>
         let map;
@@ -76,6 +79,8 @@
             }
 
             const colors = ['red', 'blue', 'green', 'purple', 'orange', 'yellow', 'brown', 'pink', 'grey', 'cyan'];
+            const clusterDetailsDiv = document.getElementById('cluster-details');
+            clusterDetailsDiv.innerHTML = '';
 
             clusters.forEach((cluster, index) => {
                 console.log(`Processing cluster ${index}:`, cluster);
@@ -103,14 +108,19 @@
                     L.circleMarker(adjustedCoordinates, {
                         color: 'black',
                         radius: 12,
-                        fillColor: color,
-                        fillOpacity: 0.5,
+                        fillColor: 'black',
+                        fillOpacity: 1.0,
                         weight: 2
                     }).addTo(map)
                     .bindPopup(`Truck ID: ${truck.id}`);
                 } else {
                     console.error('Truck is missing latitude or longitude:', truck);
                 }
+
+                const clusterDetail = document.createElement('div');
+                clusterDetail.className = 'cluster-detail';
+                clusterDetail.innerHTML = `<strong>Cluster ${cluster.clusterId}:</strong> Truck ID: ${truck ? truck.id : 'N/A'}, Orders: ${orders.map(order => order.id).join(', ')}`;
+                clusterDetailsDiv.appendChild(clusterDetail);
             });
         }
     </script>
@@ -121,5 +131,6 @@
 <button onclick="clusterOrders()">Cluster Orders</button>
 <button onclick="loadClusters()">Load Clusters</button>
 <div id="map"></div>
+<div id="cluster-details" class="cluster-details"></div>
 </body>
 </html>
