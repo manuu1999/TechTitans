@@ -5,132 +5,242 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cluster Orders</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <link rel="stylesheet" href="/static/css/bootstrap.min.css">
+    <link rel="icon" href="/static/img/favicon.ico" type="image/x-icon">
     <style>
-        #map {
-            height: 600px;
-            width: 100%;
-            margin-top: 20px;
-        }
-        .cluster-details {
-            margin-top: 20px;
-        }
-    </style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      color: #333;
+      font-family: 'Roboto', sans-serif;
+    }
+    body {
+      background: url('static/img/truck.jpg') no-repeat center center fixed;
+      background-size: cover;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    body::before {
+      content: "";
+      background: rgba(255, 255, 255, 0.6);
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+    .content {
+      flex: 1 0 auto;
+      position: relative;
+      z-index: 1;
+      padding: 20px;
+    }
+    footer {
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+    }
+    #map {
+      height: 600px;
+      width: 100%;
+      margin-top: 20px;
+    }
+    .cluster-details {
+      margin-top: 20px;
+      background: rgba(255, 255, 255, 0.8);
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .navbar {
+      margin-bottom: 20px;
+    }
+    .navbar-brand-center {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .jumbotron {
+      background: url('static/img/rainy_background.jpg') no-repeat center center;
+      background-size: cover;
+      color: #fff;
+      margin-bottom: 20px;
+    }
+    .jumbotron .container {
+      background: rgba(0, 0, 0, 0.5);
+      padding: 20px;
+      border-radius: 10px;
+    }
+  </style>
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script>
-        let map;
+    let map;
 
-        async function calculateDistance() {
-            try {
-                const response = await fetch('/calculate-distances', { method: 'GET' });
-                if (response.ok) {
-                    alert('Distances calculated successfully.');
-                } else {
-                    alert('Error calculating distances.');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error calculating distances.');
-            }
+    async function calculateDistance() {
+      try {
+        const response = await fetch('/calculate-distances', { method: 'GET' });
+        if (response.ok) {
+          alert('Distances calculated successfully.');
+        } else {
+          alert('Error calculating distances.');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error calculating distances.');
+      }
+    }
+
+    async function clusterOrders() {
+      try {
+        const response = await fetch('/cluster-orders', { method: 'GET' });
+        if (response.ok) {
+          const clusters = await response.json();
+          alert('Clustering completed successfully. Number of clusters: ' + clusters.length);
+          addClustersToMap(clusters);
+        } else {
+          alert('Error during clustering.');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error during clustering.');
+      }
+    }
+
+    async function loadClusters() {
+      try {
+        const response = await fetch('/api/clusters');
+        if (response.ok) {
+          const clusters = await response.json();
+          console.log('Fetched clusters:', clusters); // Debugging log
+          addClustersToMap(clusters);
+        } else {
+          console.error('Error fetching clusters:', response.statusText);
+        }
+      } catch (error) {
+        console.error('Error fetching clusters:', error);
+      }
+    }
+
+    function adjustCoordinates(lat, lon, index) {
+      // Adjust coordinates slightly to prevent overlapping markers
+      const offset = 0.0001 * index;
+      return [lat + offset, lon + offset];
+    }
+
+    function addClustersToMap(clusters) {
+      if (!map) {
+        map = L.map('map').setView([47.3769, 8.5417], 12); // Centered on Zurich
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+      }
+
+      const colors = ['red', 'blue', 'green', 'purple', 'orange', 'yellow', 'brown', 'pink', 'grey', 'cyan'];
+      const clusterDetailsDiv = document.getElementById('cluster-details');
+      clusterDetailsDiv.innerHTML = '';
+
+      clusters.forEach((cluster, index) => {
+        console.log(`Processing cluster ${index}:`, cluster);
+
+        const color = colors[index % colors.length];
+        const orders = cluster.orders || [];
+        const truck = cluster.truck;
+
+        orders.forEach(order => {
+          if (typeof order.deliveryLatitude === 'undefined' || typeof order.deliveryLongitude === 'undefined') {
+            console.error('Order is missing latitude or longitude:', order);
+            return;
+          }
+          L.circleMarker([order.deliveryLatitude, order.deliveryLongitude], {
+            color: color,
+            radius: 8,
+            fillColor: color,
+            fillOpacity: 0.5
+          }).addTo(map)
+            .bindPopup(`Order ID: ${order.id}`);
+        });
+
+        if (truck && typeof truck.latitude !== 'undefined' && typeof truck.longitude !== 'undefined') {
+          const adjustedCoordinates = adjustCoordinates(truck.latitude, truck.longitude, index);
+          L.circleMarker(adjustedCoordinates, {
+            color: 'black',
+            radius: 12,
+            fillColor: 'black',
+            fillOpacity: 1.0,
+            weight: 2
+          }).addTo(map)
+            .bindPopup(`Truck ID: ${truck.id}`);
+        } else {
+          console.error('Truck is missing latitude or longitude:', truck);
         }
 
-        async function clusterOrders() {
-            try {
-                const response = await fetch('/cluster-orders', { method: 'GET' });
-                if (response.ok) {
-                    const clusters = await response.json();
-                    alert('Clustering completed successfully. Number of clusters: ' + clusters.length);
-                    addClustersToMap(clusters);
-                } else {
-                    alert('Error during clustering.');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('Error during clustering.');
-            }
-        }
-
-        async function loadClusters() {
-            try {
-                const response = await fetch('/api/clusters');
-                if (response.ok) {
-                    const clusters = await response.json();
-                    console.log('Fetched clusters:', clusters); // Debugging log
-                    addClustersToMap(clusters);
-                } else {
-                    console.error('Error fetching clusters:', response.statusText);
-                }
-            } catch (error) {
-                console.error('Error fetching clusters:', error);
-            }
-        }
-
-        function adjustCoordinates(lat, lon, index) {
-            // Adjust coordinates slightly to prevent overlapping markers
-            const offset = 0.0001 * index;
-            return [lat + offset, lon + offset];
-        }
-
-        function addClustersToMap(clusters) {
-            if (!map) {
-                map = L.map('map').setView([47.3769, 8.5417], 12); // Centered on Zurich
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                }).addTo(map);
-            }
-
-            const colors = ['red', 'blue', 'green', 'purple', 'orange', 'yellow', 'brown', 'pink', 'grey', 'cyan'];
-            const clusterDetailsDiv = document.getElementById('cluster-details');
-            clusterDetailsDiv.innerHTML = '';
-
-            clusters.forEach((cluster, index) => {
-                console.log(`Processing cluster ${index}:`, cluster);
-
-                const color = colors[index % colors.length];
-                const orders = cluster.orders || [];
-                const truck = cluster.truck;
-
-                orders.forEach(order => {
-                    if (typeof order.deliveryLatitude === 'undefined' || typeof order.deliveryLongitude === 'undefined') {
-                        console.error('Order is missing latitude or longitude:', order);
-                        return;
-                    }
-                    L.circleMarker([order.deliveryLatitude, order.deliveryLongitude], {
-                        color: color,
-                        radius: 8,
-                        fillColor: color,
-                        fillOpacity: 0.5
-                    }).addTo(map)
-                    .bindPopup(`Order ID: ${order.id}`);
-                });
-
-                if (truck && typeof truck.latitude !== 'undefined' && typeof truck.longitude !== 'undefined') {
-                    const adjustedCoordinates = adjustCoordinates(truck.latitude, truck.longitude, index);
-                    L.circleMarker(adjustedCoordinates, {
-                        color: 'black',
-                        radius: 12,
-                        fillColor: 'black',
-                        fillOpacity: 1.0,
-                        weight: 2
-                    }).addTo(map)
-                    .bindPopup(`Truck ID: ${truck.id}`);
-                } else {
-                    console.error('Truck is missing latitude or longitude:', truck);
-                }
-
-                const clusterDetail = document.createElement('div');
-                clusterDetail.className = 'cluster-detail';
-                clusterDetail.innerHTML = `<strong>Cluster ${cluster.clusterId}:</strong> Truck ID: ${truck ? truck.id : 'N/A'}, Orders: ${orders.map(order => order.id).join(', ')}`;
-                clusterDetailsDiv.appendChild(clusterDetail);
-            });
-        }
-    </script>
+        const clusterDetail = document.createElement('div');
+        clusterDetail.className = 'cluster-detail';
+        clusterDetail.innerHTML = `<strong>Cluster ${cluster.clusterId}:</strong> Truck ID: ${truck ? truck.id : 'N/A'}, Orders: ${orders.map(order => order.id).join(', ')}`;
+        clusterDetailsDiv.appendChild(clusterDetail);
+      });
+    }
+  </script>
 </head>
 <body>
-<h1>Cluster Orders</h1>
-<button onclick="calculateDistance()">Calculate Distances</button>
-<button onclick="clusterOrders()">Cluster Orders</button>
-<button onclick="loadClusters()">Load Clusters</button>
-<div id="map"></div>
-<div id="cluster-details" class="cluster-details"></div>
+<!-- Navigation Bar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="navbar-brand navbar-brand-center">
+            <img src="/static/img/favicon.ico" alt="Logo" width="30" height="30" class="d-inline-block align-top">
+        </div>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item" th:if="${role == 'ADMIN'}">
+                    <a class="nav-link" th:href="@{/manageSite}">Admin Panel</a>
+                </li>
+                <li class="nav-item" th:if="${role == 'TRUCKDRIVER'}">
+                    <a class="nav-link" th:href="@{/deliveries}">My Routes</a>
+                </li>
+                <li class="nav-item" th:if="${role == 'SHIPPER'}">
+                    <a class="nav-link" th:href="@{/shipments}">My Shipments</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/logout}">Logout</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="container content">
+    <h1>Cluster Orders</h1>
+    <button class="btn btn-primary" onclick="calculateDistance()">Calculate Distances</button>
+    <button class="btn btn-success" onclick="clusterOrders()">Cluster Orders</button>
+    <button class="btn btn-info" onclick="loadClusters()">Load Clusters</button>
+    <div id="map"></div>
+    <div id="cluster-details" class="cluster-details"></div>
+</div>
+
+<!-- Footer -->
+<footer class="bg-dark text-white mt-4">
+    <div class="container-fluid py-3">
+        <div class="row">
+            <div class="col-md-12 text-center">
+                <p class="mb-0 py-2">© 2024 Truck Tour Planning Co. All rights reserved.</p>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<script src="/static/js/jquery.min.js"></script>
+<script src="/static/js/popper.min.js"></script>
+<script src="/static/js/bootstrap.min.js"></script>
 </body>
 </html>

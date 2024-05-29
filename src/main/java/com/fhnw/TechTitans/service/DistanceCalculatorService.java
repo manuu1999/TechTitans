@@ -1,13 +1,13 @@
 package com.fhnw.TechTitans.service;
 
-import com.fhnw.TechTitans.model.Order;
 import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 public class DistanceCalculatorService {
+
+    // code from following source:
+    // https://www.baeldung.com/java-find-distance-between-points
+    // adapted to the project
 
     /**
      * Calculate the distance between two points on the Earth.

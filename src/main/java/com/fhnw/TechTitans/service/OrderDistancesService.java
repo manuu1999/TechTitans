@@ -65,4 +65,44 @@ public class OrderDistancesService {
 
         return distances;
     }
+
+    /**
+     * Find the order that is furthest from the center point.
+     *
+     * @param orders List of orders.
+     * @return The order that is furthest from the center point.
+     */
+    public Order findFurthestOrderFromCenter(List<Order> orders) {
+        if (orders == null || orders.isEmpty()) {
+            throw new IllegalArgumentException("Order list cannot be null or empty");
+        }
+
+        // Calculate the center point of the orders
+        double[] centerPoint = orderService.calculateCenterPoint(orders);
+        double centerLatitude = centerPoint[0];
+        double centerLongitude = centerPoint[1];
+
+        Order furthestOrder = null;
+        double maxDistance = -1;
+
+        // Find the order furthest from the center point
+        for (Order order : orders) {
+            Double latitude = order.getDeliveryLatitude();
+            Double longitude = order.getDeliveryLongitude();
+            if (latitude != null && longitude != null) {
+                double distance = calculateDistance(centerLatitude, centerLongitude, latitude, longitude);
+                if (distance > maxDistance) {
+                    maxDistance = distance;
+                    furthestOrder = order;
+                }
+            }
+        }
+
+        if (furthestOrder == null) {
+            throw new IllegalArgumentException("No valid order locations found");
+        }
+
+        logger.info(String.format("Furthest order is Order %d at distance %.2f km", furthestOrder.getId(), maxDistance));
+        return furthestOrder;
+    }
 }

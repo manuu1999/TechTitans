@@ -46,6 +46,36 @@ public class OrderService {
         return calculator.calculateClusterArea(cluster);
     }
 
+    // Method to calculate the center point of all orders
+    public double[] calculateCenterPoint(List<Order> orders) {
+        if (orders == null || orders.isEmpty()) {
+            throw new IllegalArgumentException("Order list cannot be null or empty");
+        }
+
+        double sumLatitude = 0.0;
+        double sumLongitude = 0.0;
+        int count = 0;
+
+        for (Order order : orders) {
+            Double latitude = order.getDeliveryLatitude();
+            Double longitude = order.getDeliveryLongitude();
+            if (latitude != null && longitude != null) {
+                sumLatitude += latitude;
+                sumLongitude += longitude;
+                count++;
+            }
+        }
+
+        if (count == 0) {
+            throw new IllegalArgumentException("No valid order locations found");
+        }
+
+        double centerLatitude = sumLatitude / count;
+        double centerLongitude = sumLongitude / count;
+
+        return new double[]{centerLatitude, centerLongitude};
+    }
+
 
     public List<Order> getOrdersByIds(List<Integer> ids) {
         return orderRepository.findAllById(ids);
