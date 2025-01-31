@@ -28,8 +28,3 @@ This project was developed as part of an **IT project at the University of Appli
 - **Database**: MySQL  
 - **DevOps**: Azure DevOps, Docker (optional)  
 
-## 🔧 Installation & Setup
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/manuu1999/TruckTourPlanning.git
-   cd TruckTourPlanning
